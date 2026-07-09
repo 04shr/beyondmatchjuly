@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Candidate Matches – BeyondMatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  --bg:          #0b0e16;
+  --surface:     #0f1220;
+  --card:        #131726;
+  --card-border: rgba(122,162,255,0.08);
+  --card-hover:  rgba(122,162,255,0.04);
+  --blue:        #7aa2ff;
+  --blue-dim:    rgba(122,162,255,0.12);
+  --blue-line:   rgba(122,162,255,0.2);
+  --green:       #4ade80;
+  --green-dim:   rgba(34,197,94,0.1);
+  --green-line:  rgba(34,197,94,0.2);
+  --red:         #f87171;
+  --amber:       #fbbf24;
+  --purple:      #c084fc;
+  --text-1:      #e2e8f0;
+  --text-2:      #9bb3ff;
+  --text-3:      #88add9;
+  --text-muted:  #cfd6ff;
+  --sidebar-w:   220px;
+  --radius-lg:   14px;
+  --radius-md:   10px;
+  --radius-sm:   8px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+::-webkit-scrollbar              { width: 5px; height: 5px; }
+::-webkit-scrollbar-track        { background: var(--bg); }
+::-webkit-scrollbar-thumb        { background: #1e2540; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--blue); }
+html { scroll-behavior: smooth; }
+body {
+  display: flex; min-height: 100vh;
+  background: var(--bg); color: var(--text-1);
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  line-height: 1.5; overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w); min-height: 100vh;
+  background: #0d1018; border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 28px 16px 24px; display: flex; flex-direction: column; flex-shrink: 0;
+}
+.brand { font-size: 1.45rem; font-weight: 700; color: var(--blue); margin-bottom: 36px; letter-spacing: -0.02em; }
+.menu  { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.menu-item {
+  display: block; font-size: 13.5px; font-weight: 500; color: #a8b3d1;
+  padding: 10px 14px; border-radius: var(--radius-sm); text-decoration: none;
+  border: 1px solid transparent; transition: background 0.2s, color 0.2s, border-color 0.2s;
+  cursor: pointer; background: none; font-family: inherit; text-align: left; width: 100%;
+}
+.menu-item:hover  { background: rgba(122,162,255,0.06); color: var(--text-1); }
+.menu-item.active { background: rgba(122,162,255,0.1); border-color: rgba(122,162,255,0.25); color: var(--blue); }
+.logout-btn       { color: var(--red) !important; margin-top: auto; }
+.logout-btn:hover { background: rgba(248,113,113,0.08) !important; }
+
+/* ── MAIN ── */
+.main { flex: 1; min-width: 0; height: 100vh; overflow-y: auto; padding: 32px 32px 48px; }
+
+/* ── PAGE TITLE ── */
+.page-title         { margin-bottom: 24px; }
+.page-title h1      { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-1); }
+.page-title p       { font-size: 13px; color: var(--text-3); margin-top: 5px; }
+
+/* ── CARD BASE ── */
+.card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg); padding: 22px 24px;
+}
+
+/* ── SELECT CARD ── */
+.select-card {
+  display: flex; align-items: center; gap: 20px;
+  flex-wrap: wrap; padding: 16px 22px; margin-bottom: 24px;
+}
+.select-card label {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--text-2); white-space: nowrap;
+}
+.select-card .select-row { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 240px; }
+
+/* ── FORM CONTROLS ── */
+select, input {
+  background: #0d1018; border: 1px solid rgba(122,162,255,0.14);
+  border-radius: var(--radius-sm); color: var(--text-1);
+  font-family: inherit; font-size: 13px; padding: 9px 12px; outline: none;
+  transition: border-color 0.2s; width: 100%; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5580' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+}
+select:focus, input:focus { border-color: rgba(122,162,255,0.4); }
+select option { background: #111827; }
+input[type="text"] { cursor: text; background-image: none; padding-right: 12px; }
+input[type="text"]::placeholder { color: #4a5580; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  background: var(--blue); color: #080c18; border: none;
+  border-radius: var(--radius-sm); font-family: inherit; font-size: 13px; font-weight: 700;
+  padding: 9px 20px; cursor: pointer; white-space: nowrap;
+  transition: opacity 0.15s, transform 0.1s; flex-shrink: 0;
+}
+.btn-primary:hover  { opacity: 0.88; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+/* ── MATCHES SECTION ── */
+.matches-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 18px; flex-wrap: wrap; gap: 12px;
+}
+.matches-header h3  { font-size: 15px; font-weight: 600; color: var(--text-1); }
+.matches-count      { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.match-filters      { display: flex; gap: 10px; flex-wrap: wrap; }
+.filter-select      { width: auto; min-width: 130px; font-size: 12px; padding: 7px 28px 7px 10px; background-color: #0d1018; }
+
+/* ── MATCHES GRID ── */
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 16px;
+}
+
+/* ── CANDIDATE CARD ── */
+.cand-match-card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg); padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 0;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  position: relative; overflow: hidden; animation: fadeUp 0.35s ease both;
+}
+.cand-match-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at top left, rgba(122,162,255,0.04), transparent 60%);
+  pointer-events: none;
+}
+.cand-match-card:hover {
+  transform: translateY(-3px); border-color: rgba(122,162,255,0.22);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+.cand-match-card.ai-shortlist {
+  border-color: rgba(251,191,36,0.25);
+  box-shadow: 0 0 0 1px rgba(251,191,36,0.1);
+}
+.cand-match-card.ai-shortlist::before {
+  background: radial-gradient(ellipse at top left, rgba(251,191,36,0.05), transparent 60%);
+}
+
+/* ── Card Header ── */
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px; }
+.card-titles  { flex: 1; min-width: 0; }
+.card-name    { font-size: 15px; font-weight: 600; color: var(--text-1); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-email   { font-size: 12px; color: var(--text-2); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Match Ring ── */
+.match-pct    { flex-shrink: 0; }
+.match-ring   { position: relative; width: 48px; height: 48px; }
+.match-ring svg { width: 48px; height: 48px; transform: rotate(-90deg); }
+.match-ring .ring-bg   { fill: none; stroke: #1b2140; stroke-width: 4; }
+.match-ring .ring-fill { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 113; transition: stroke-dashoffset 1s cubic-bezier(0.34,1.56,0.64,1); }
+.match-ring-label {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--text-1);
+}
+
+/* ── AI Badge ── */
+.ai-top-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--amber); background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2);
+  border-radius: 5px; padding: 2px 7px; margin-bottom: 10px; align-self: flex-start;
+}
+
+/* ── Skills ── */
+.card-skills { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.skill-pill {
+  font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px;
+  background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue-line);
+  letter-spacing: 0.03em; text-transform: uppercase;
+}
+.skill-pill.subtle {
+  background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.07);
+  color: var(--text-3); text-transform: none; letter-spacing: 0; font-weight: 500;
+}
+
+/* ── Level chip ── */
+.level-chip {
+  display: inline-flex; font-size: 10px; font-weight: 600; padding: 2px 8px;
+  border-radius: 5px; background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07); color: var(--text-3);
+  margin-bottom: 10px; text-transform: capitalize;
+}
+
+/* ── AI Insight ── */
+.card-insight {
+  font-size: 12px; color: var(--text-2);
+  background: rgba(122,162,255,0.06); border: 1px solid rgba(122,162,255,0.12);
+  border-radius: 7px; padding: 7px 10px; line-height: 1.5; margin-bottom: 12px;
+}
+.card-insight.muted { color: var(--text-3); background: transparent; border-color: transparent; font-style: italic; }
+
+/* ── Separator ── */
+.card-sep { height: 1px; background: rgba(122,162,255,0.06); margin: 0 0 12px; }
+
+/* ── Action Buttons ── */
+.card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto; }
+.card-btn {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  height: 34px; font-family: inherit; font-size: 11.5px; font-weight: 600;
+  border-radius: var(--radius-sm); border: 1px solid transparent;
+  cursor: pointer; text-decoration: none; transition: all 0.2s; white-space: nowrap;
+}
+.card-btn.view {
+  background: linear-gradient(135deg, rgba(122,162,255,0.2), rgba(122,162,255,0.1));
+  border-color: rgba(122,162,255,0.3); color: var(--blue);
+}
+.card-btn.view:hover  { background: var(--blue); color: #080c18; border-color: var(--blue); }
+.card-btn.analyse {
+  background: rgba(192,132,252,0.08); border-color: rgba(192,132,252,0.2); color: var(--purple);
+}
+.card-btn.analyse:hover { background: rgba(192,132,252,0.16); border-color: rgba(192,132,252,0.35); }
+
+/* ── Empty / Loading states ── */
+.empty-state {
+  grid-column: 1 / -1; padding: 48px 24px; text-align: center; color: var(--text-3);
+}
+.empty-state-icon {
+  width: 52px; height: 52px; background: var(--blue-dim); border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+}
+.empty-state-icon svg { stroke: var(--blue); }
+.empty-state h4 { font-size: 15px; font-weight: 600; color: var(--text-1); margin-bottom: 6px; }
+.empty-state p  { font-size: 13px; }
+
+/* ── Skeleton ── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+.skeleton-card {
+  background: var(--card); border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg); padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.skel {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #1a2035 25%, #202840 50%, #1a2035 75%);
+  background-size: 600px 100%; animation: shimmer 1.4s infinite linear;
+}
+.skel-row    { display: flex; gap: 10px; align-items: center; }
+.skel-h20    { height: 20px; }
+.skel-h14    { height: 14px; }
+.skel-h10    { height: 10px; }
+.skel-h34    { height: 34px; border-radius: var(--radius-sm); }
+.skel-circle { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; }
+.skel-fill   { flex: 1; }
+.skel-w60    { width: 60%; }
+.skel-w40    { width: 40%; }
+.skel-w30    { width: 30%; }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cand-match-card:nth-child(1) { animation-delay: .04s }
+.cand-match-card:nth-child(2) { animation-delay: .08s }
+.cand-match-card:nth-child(3) { animation-delay: .12s }
+.cand-match-card:nth-child(4) { animation-delay: .16s }
+.cand-match-card:nth-child(5) { animation-delay: .20s }
+.cand-match-card:nth-child(6) { animation-delay: .24s }
+</style>
+</head>
+<body>
+
+<!-- ════════ SIDEBAR ════════ -->
+<aside class="sidebar">
+  <a href="/cand-matches.html" style="text-decoration:none;"><h2 class="brand">BeyondMatch</h2></a>
+  <nav class="menu">
+    <a href="rec-dash.html"     class="menu-item">Dashboard</a>
+    <a href="rec-postjob.html"     class="menu-item">Post Job</a>
+    <a href="rec-jobs.html"     class="menu-item">My Jobs</a>
+    <a href="cand-matches.html" class="menu-item active">Candidate Matches</a>
+    <a href="rec-actions.html"  class="menu-item">Recruiter Actions</a>
+    <a href="settings.html"     class="menu-item">Settings</a>
+    <button class="menu-item logout-btn" onclick="unifiedLogout()">⏻ Logout</button>
+  </nav>
+</aside>
+
+<!-- ════════ MAIN ════════ -->
+<main class="main">
+
+  <!-- PAGE TITLE -->
+  <div class="page-title">
+    <h1>Candidate Matches</h1>
+    <p>Select a role to view matching candidates.</p>
+  </div>
+
+  <!-- SELECT CARD — mirrors jobmatches.html exactly -->
+  <div class="card select-card">
+    <label>Job Posting</label>
+    <div class="select-row">
+      <select id="roleDropdown"><option value="">Loading roles…</option></select>
+      <button class="btn-primary" onclick="triggerLoadCandidates()">View Matches</button>
+    </div>
+  </div>
+
+  <!-- MATCHES SECTION -->
+  <div class="matches-section">
+    <div class="matches-header">
+      <div>
+        <h3>Matched Candidates</h3>
+        <div class="matches-count" id="matchesCount"></div>
+      </div>
+      <div class="match-filters">
+        <select id="candSortSelect" class="filter-select">
+          <option value="score">Sort by Score</option>
+          <option value="name">Name A–Z</option>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+        </select>
+        <input type="text" id="candSearchInput" class="filter-select"
+               style="min-width:170px;background-image:none;padding-right:12px;"
+               placeholder="Search candidate…" />
+      </div>
+    </div>
+
+    <!-- GRID — no transformer, no MutationObserver, plain render -->
+    <div id="candMatchesTable" class="matches-grid"></div>
+  </div>
+
+</main>
+
+<!-- ════════ IDLE STATE ════════ -->
+<script>
+(function() {
+  const grid = document.getElementById('candMatchesTable');
+  if (!grid) return;
+  grid.innerHTML = `
+    <div class="empty-state" id="idleState">
+      <div class="empty-state-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+      <h4>Select a role to find candidates</h4>
+      <p>Choose a job posting above and click <strong style="color:#7aa2ff;">View Matches</strong>.</p>
+    </div>`;
+})();
+
+/* ── Skeleton helper — same shape as jobmatches ── */
+function _showCandSkeletons(count) {
+  const grid = document.getElementById('candMatchesTable');
+  if (!grid) return;
+  grid.innerHTML = Array(count).fill(null).map(() => `
+    <div class="skeleton-card">
+      <div class="skel-row">
+        <div style="flex:1;">
+          <div class="skel skel-h20 skel-w60" style="margin-bottom:6px;"></div>
+          <div class="skel skel-h14 skel-w40"></div>
+        </div>
+        <div class="skel skel-circle"></div>
+      </div>
+      <div class="skel-row" style="gap:6px;">
+        <div class="skel skel-h10" style="width:70px;border-radius:5px;"></div>
+        <div class="skel skel-h10" style="width:80px;border-radius:5px;"></div>
+        <div class="skel skel-h10" style="width:55px;border-radius:5px;"></div>
+      </div>
+      <div class="skel skel-h14 skel-w60" style="margin-top:2px;"></div>
+      <div class="skel skel-h34" style="width:100%;margin-top:4px;"></div>
+      <div class="skel-row" style="gap:8px;margin-top:4px;">
+        <div class="skel skel-h34" style="flex:1;"></div>
+        <div class="skel skel-h34" style="flex:1;"></div>
+      </div>
+    </div>`).join('');
+}
+
+/* ── Ring builder — identical to jobmatches ── */
+function _makeRing(pct) {
+  const circ = 113;
+  const offset = circ - (pct / 100) * circ;
+  const col = pct >= 80 ? '#4ade80' : pct >= 60 ? '#7aa2ff' : pct >= 40 ? '#fbbf24' : '#f87171';
+  return `
+    <div class="match-ring" data-offset="${offset}">
+      <svg viewBox="0 0 40 40">
+        <circle class="ring-bg"   cx="20" cy="20" r="18"/>
+        <circle class="ring-fill" cx="20" cy="20" r="18"
+          stroke="${col}" stroke-dasharray="${circ}" stroke-dashoffset="${circ}"
+          fill="none" stroke-width="3.5" stroke-linecap="round"
+          style="transform:rotate(-90deg);transform-origin:center"/>
+      </svg>
+      <div class="match-ring-label">${Math.round(pct)}%</div>
+    </div>`;
+}
+
+function _animateRings() {
+  document.querySelectorAll('.match-ring[data-offset]').forEach(r => {
+    const fill = r.querySelector('.ring-fill');
+    if (!fill) return;
+    const off = r.dataset.offset;
+    requestAnimationFrame(() => setTimeout(() => { fill.style.strokeDashoffset = off; }, 60));
+  });
+}
+
+/* State */
+let _allCandidates = [];
+let _currentLlmMap = {};
+let _currentJobId  = null;
+
+/* Called by "View Matches" button */
+window.triggerLoadCandidates = async function() {
+  const jobId = document.getElementById('roleDropdown')?.value;
+  if (!jobId) { if (window.showToast) showToast('Please select a role first.', 'warning'); return; }
+  _currentJobId = jobId;
+  _currentLlmMap = {};
+  _showCandSkeletons(6);
+
+  // Both Firestore user fetch + match API happen in parallel via api.js
+  if (typeof window.loadCandidatesForRole === 'function') {
+    await window.loadCandidatesForRole(jobId);
+  }
+};
+
+/* Called by api.js after data is ready — renders cards directly, no transformer */
+window.renderCandidateCards = function(candidates, llmMap) {
+  _allCandidates = candidates || [];
+  _currentLlmMap = llmMap || {};
+  _renderGrid(_allCandidates, _currentLlmMap);
+};
+
+/* Patch LLM insights in-place after background enrichment */
+window.patchCandidateLlm = function(llmMap) {
+  _currentLlmMap = llmMap;
+  document.querySelectorAll('[data-cid]').forEach(card => {
+    const llm = llmMap[card.dataset.cid];
+    if (!llm) return;
+
+    // Patch insight text
+    const ins = card.querySelector('[data-cid-insight]');
+    if (ins && llm.recruiter_summary) {
+      ins.innerHTML = `<span>✦ ${llm.recruiter_summary}</span>`;
+    }
+
+    // Inject AI top badge if it wasn't present at render time
+    if (llm.shortlist_flag && !card.querySelector('.ai-top-badge')) {
+      const badge = document.createElement('div');
+      badge.className = 'ai-top-badge';
+      badge.textContent = '⭐ AI Recommended';
+      card.prepend(badge);
+      card.classList.add('ai-shortlist');
+    }
+  });
+};
+
+function _renderGrid(candidates, llmMap) {
+  const grid = document.getElementById('candMatchesTable');
+  if (!grid) return;
+
+  let list = [...candidates];
+  const search = document.getElementById('candSearchInput')?.value.toLowerCase() || '';
+  if (search) list = list.filter(c => c.name?.toLowerCase().includes(search) || c.email?.toLowerCase().includes(search));
+
+  const sort = document.getElementById('candSortSelect')?.value || 'score';
+  if (sort === 'score')  list.sort((a,b) => (b.match_percent||0) - (a.match_percent||0));
+  if (sort === 'name')   list.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+  if (sort === 'newest') list.sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+  if (sort === 'oldest') list.sort((a,b) => new Date(a.created_at||0) - new Date(b.created_at||0));
+
+  const countEl = document.getElementById('matchesCount');
+  if (countEl) countEl.textContent = list.length ? `${list.length} candidate${list.length!==1?'s':''} found` : '';
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><h4>No candidates found</h4><p>Try adjusting your search.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map((c, idx) => {
+    const pct   = parseFloat(c.match_percent || 0);
+    const llm   = llmMap[c.candidate_id] || {};
+    const name  = (c.name && c.name !== c.email) ? c.name : (c.email?.split('@')[0] || 'Candidate');
+    const skills = (c.matched_skills || []).slice(0, 4);
+
+    return `
+      <div class="cand-match-card ${llm.shortlist_flag ? 'ai-shortlist' : ''}"
+           data-cid="${c.candidate_id}"
+           style="animation-delay:${idx * 55}ms">
+        ${llm.shortlist_flag ? `<div class="ai-top-badge">⭐ AI Recommended</div>` : ''}
+
+        <div class="card-header">
+          <div class="card-titles">
+            <div class="card-name">${name}</div>
+            <div class="card-email">${c.email || '—'}</div>
+          </div>
+          <div class="match-pct">${_makeRing(pct)}</div>
+        </div>
+
+        ${c.level ? `<div class="level-chip">${c.level}</div>` : ''}
+
+        <div class="card-skills">
+          ${skills.length
+            ? skills.map(s => `<span class="skill-pill">${s}</span>`).join('')
+            : `<span class="skill-pill subtle">No skills listed</span>`}
+        </div>
+
+        <div class="card-sep"></div>
+
+        <div class="card-insight" data-cid-insight="${c.candidate_id}">
+          ${(() => {
+            const txt = llm.recruiter_summary || c.explanation?.top_reason;
+            if (txt) return `<span>✦ ${txt}</span>`;
+            return `<span style="color:#4a5580;font-size:11.5px;font-style:italic;">🔍 Click <strong style="color:#7aa2ff;">Analyse</strong> for full candidate insights</span>`;
+          })()}
+        </div>
+
+        <div class="card-actions">
+          <a href="rec-actions.html?id=${c.candidate_id}&job=${_currentJobId}"
+             class="card-btn view">View Profile →</a>
+          <button class="card-btn analyse"
+            onclick="window.openCandidateAnalysis && openCandidateAnalysis('${c.candidate_id}','${(name).replace(/'/g,'')}','${_currentJobId}')">
+            🔍 Analyse
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  _animateRings();
+}
+
+/* Search + sort listeners */
+document.getElementById('candSearchInput')?.addEventListener('input',  () => _renderGrid(_allCandidates, _currentLlmMap));
+document.getElementById('candSortSelect')?.addEventListener('change', () => _renderGrid(_allCandidates, _currentLlmMap));
+</script>
+
+<script type="module" src="auth.js"></script>
+<script type="module" src="api.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruiter Dashboard – BeyondMatch</title>
+  <link rel="stylesheet" href="recruiter-matches.css" />
+  <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.23.1/dist/powerbi.min.js"></script>
+<style>
+:root { --r-lg:14px; --r-md:10px; --r-sm:8px; --purple:#c084fc; --purple-dim:rgba(192,132,252,0.10); --amber-dim:rgba(251,191,36,0.10); }
+#lbar{position:fixed;top:0;left:0;height:2px;z-index:999;background:linear-gradient(90deg,var(--blue),var(--purple));width:0;transition:width .35s ease;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.shim{background:linear-gradient(90deg,#1a2035 25%,#212942 50%,#1a2035 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
+
+/* ── MAIN: fills viewport, no scroll ── */
+.main{height:100vh;overflow:hidden;padding:24px 24px 24px;display:flex;flex-direction:column;gap:16px;}
+
+.dash-header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;flex-shrink:0;}
+.dash-header h1{font-size:20px;font-weight:700;letter-spacing:-0.02em;}
+.dash-header p{font-size:12px;color:var(--text-3);margin-top:3px;}
+.rec-pill{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--card-border);padding:8px 14px;border-radius:30px;}
+.rec-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#5b7fff,var(--purple));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.rec-pill-name{font-size:13px;font-weight:600;color:var(--text-1);}
+.rec-pill-org{font-size:11px;color:var(--blue);font-weight:500;}
+.rbtn{background:var(--blue-dim);border:1px solid var(--blue-line);color:var(--blue);font-family:inherit;font-size:12px;font-weight:600;padding:6px 13px;border-radius:var(--r-sm);cursor:pointer;transition:background .2s;display:flex;align-items:center;gap:6px;}
+.rbtn:hover{background:rgba(122,162,255,0.15);}
+.rbtn.spin svg{animation:spin .85s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── PBI EMBED: fills all remaining space ── */
+#pbi-container{flex:1;min-height:0;position:relative;border-radius:var(--r-lg);overflow:hidden;border:1px solid rgba(122,162,255,0.08);}
+#pbi-container iframe{position:absolute;inset:0;width:100%!important;height:100%!important;border:none!important;}
+#pbi-shimmer{position:absolute;inset:0;border-radius:var(--r-lg);}
+</style>
+</head>
+<body>
+
+<div id="lbar"></div>
+
+<aside class="sidebar">
+  <a href="/rec-dash.html" style="text-decoration:none;"><h2 class="brand">BeyondMatch</h2></a>
+  <nav class="menu">
+    <a href="rec-dash.html"     class="menu-item active">Dashboard</a>
+    <a href="rec-postjob.html"     class="menu-item">Post Job</a>
+    <a href="rec-jobs.html"     class="menu-item">My Jobs</a>
+    <a href="cand-matches.html" class="menu-item">Candidate Matches</a>
+    <a href="rec-actions.html"  class="menu-item">Recruiter Actions</a>
+    <a href="settings.html"     class="menu-item">Settings</a>
+    <button class="menu-item logout-btn" onclick="unifiedLogout()">⏻ Logout</button>
+  </nav>
+</aside>
+
+<main class="main">
+
+  <!-- HEADER -->
+  <div class="dash-header">
+    <div>
+      <h1>Hiring Dashboard</h1>
+      <p id="sub">Loading your hiring overview…</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <div class="rec-pill" id="pill" style="display:none;">
+        <div class="rec-avatar" id="av">R</div>
+        <div>
+          <div class="rec-pill-name" id="pname">—</div>
+          <div class="rec-pill-org"  id="porg">—</div>
+        </div>
+      </div>
+      <button class="rbtn" id="rbtn" onclick="boot()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- ERROR BANNER -->
+  <div id="errBanner" style="display:none;background:rgba(248,113,113,0.1);
+    border:1px solid rgba(248,113,113,0.25);border-radius:12px;
+    padding:14px 18px;color:#f87171;font-size:13px;flex-shrink:0;"></div>
+
+  <!-- POWER BI EMBED -->
+  <div id="pbi-container">
+    <div id="pbi-shimmer" class="shim"></div>
+  </div>
+
+</main>
+
+<script>
+const API_LAMBDA        = "https:///getEmbedUrl";
+const FALLBACK_REPORT_ID = "d42b15f2-90fa-4203-9d3a-6b7ceac383ef";
+
+const $   = id => document.getElementById(id);
+const st  = (id, v) => { const e=$(id); if(e) e.textContent=v; };
+
+function bar(p){ const e=$("lbar"); e.style.width=p+"%"; if(p>=100) setTimeout(()=>e.style.opacity="0",600); }
+
+function showErr(msg){ const b=$("errBanner"); if(b){ b.textContent=msg; b.style.display="block"; } }
+
+function embedReport(accessToken, embedUrl, reportId) {
+  const models    = window["powerbi-client"].models;
+  const container = $("pbi-container");
+  $("pbi-shimmer")?.remove();
+
+  const report = window.powerbi.embed(container, {
+    type:        "report",
+    id:          reportId || FALLBACK_REPORT_ID,
+    embedUrl:    embedUrl,
+    accessToken: accessToken,
+    tokenType:   models.TokenType.Embed,   // ← Embed token from Lambda
+    permissions: models.Permissions.All,
+    settings: {
+      navContentPaneEnabled: false,
+      background:            models.BackgroundType.Transparent,
+      panes: {
+        filters:        { visible: false },
+        pageNavigation: { visible: true }
+      }
+    }
+  });
+
+  report.on("error",    e => { console.error("PBI error:", e.detail); showErr(`Power BI error: ${e.detail?.message||"unknown"}`); });
+  report.on("loaded",   () => { console.log("✅ Report loaded"); bar(100); });
+  report.on("rendered", () => console.log("✅ Report rendered"));
+}
+
+async function boot() {
+  const btn=$("rbtn"); btn?.classList.add("spin"); bar(10);
+  // reset error
+  const eb=$("errBanner"); if(eb) eb.style.display="none";
+
+  try {
+    if(!window.auth || !window.db || !window.auth.currentUser) {
+      console.warn("Auth not ready"); btn?.classList.remove("spin"); return;
+    }
+
+    const user  = window.auth.currentUser;
+    const email = user.email;
+    bar(25);
+
+    // ── Firestore: get recruiter name + org ──
+    const { getDoc, doc } = await import(
+      "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+    );
+    const snap = await getDoc(doc(window.db, "users", user.uid));
+    if(!snap.exists()){ showErr("User data not found"); btn?.classList.remove("spin"); bar(100); return; }
+
+    const d    = snap.data();
+    const name = d.name || email.split("@")[0] || "Recruiter";
+    const org  = d.organisation_name || "Your Organisation";
+
+    $("av").textContent    = (org||name).charAt(0).toUpperCase();
+    $("pname").textContent = name;
+    $("porg").textContent  = org;
+    $("pill").style.display = "flex";
+    st("sub", `Hiring overview for ${org}`);
+    bar(50);
+
+    // ── Call Lambda for embed token (role = Recruiter) ──
+    console.log("Calling Lambda for recruiter embed token…");
+    const res  = await fetch(API_LAMBDA, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ userEmail: email, role: "Recruiter" })
+    });
+
+    const data    = await res.json();
+    const payload = (data.body && typeof data.body === "string")
+      ? JSON.parse(data.body) : data;
+
+    console.log("✅ Lambda payload:", payload);
+
+    if(!res.ok || payload.error) {
+      const errDetail = (payload.error && typeof payload.error === "object")
+        ? (payload.error.message || payload.error.errorCode || JSON.stringify(payload.error))
+        : (payload.error || `HTTP ${res.status}`);
+      showErr(`❌ Lambda error (${res.status}): ${errDetail}`);
+      btn?.classList.remove("spin"); bar(100); return;
+    }
+
+    const accessToken = payload.embedToken || payload.token || payload.access_token;
+    const embedUrl    = payload.embedUrl   || payload.embed_url;
+    const reportId    = payload.reportId   || FALLBACK_REPORT_ID;
+
+    if(!accessToken || !embedUrl){
+      showErr(`Lambda missing fields — token: ${!!accessToken}, url: ${!!embedUrl}`);
+      btn?.classList.remove("spin"); bar(100); return;
+    }
+
+    bar(80);
+    embedReport(accessToken, embedUrl, reportId);
+
+  } catch(err) {
+    console.error("❌ Dashboard error:", err);
+    showErr(`Failed to load: ${err.message}`);
+    bar(100);
+  }
+
+  btn?.classList.remove("spin");
+}
+
+(function init(){
+  let n=0;
+  const t=setInterval(()=>{
+    n++;
+    if(window.auth!==undefined && window.db!==undefined){
+      clearInterval(t);
+      if(typeof window.auth.onAuthStateChanged==="function")
+        window.auth.onAuthStateChanged(u=>{ if(u) boot(); });
+      else boot();
+    }
+    if(n>50){ clearInterval(t); bar(100); }
+  },100);
+})();
+</script>
+
+<script type="module" src="auth.js"></script>
+<script type="module" src="api.js"></script>
+</body>
+</html>

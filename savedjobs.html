@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saved Jobs – BeyondMatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="skeleton-loader.css" />
+
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS — identical to resume.html / jobmatches.html
+═══════════════════════════════════════════ */
+:root {
+  --bg:          #0b0e16;
+  --surface:     #0f1220;
+  --card:        #131726;
+  --card-border: rgba(122,162,255,0.08);
+
+  --blue:        #7aa2ff;
+  --blue-dim:    rgba(122,162,255,0.12);
+  --blue-line:   rgba(122,162,255,0.22);
+
+  --green:       #4ade80;
+  --green-dim:   rgba(34,197,94,0.1);
+  --green-line:  rgba(34,197,94,0.2);
+
+  --red:         #f87171;
+  --red-dim:     rgba(248,113,113,0.08);
+  --red-line:    rgba(248,113,113,0.22);
+
+  --amber:       #fbbf24;
+  --purple:      #c084fc;
+
+  --text-1:      #e2e8f0;
+  --text-2:      #9bb3ff;
+  --text-3:      #88add9;
+
+  --sidebar-w:   220px;
+  --radius-lg:   14px;
+  --radius-md:   10px;
+  --radius-sm:   8px;
+}
+
+/* ═══════════════════════════════════════════
+   RESET + BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+::-webkit-scrollbar              { width: 5px; height: 5px; }
+::-webkit-scrollbar-track        { background: var(--bg); }
+::-webkit-scrollbar-thumb        { background: #1e2540; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--blue); }
+
+body {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+.cand-sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: #0d1018;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 28px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.cand-brand {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 36px;
+  letter-spacing: -0.02em;
+}
+
+.cand-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.cand-menu-item {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #a8b3d1;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.cand-menu-item:hover {
+  background: rgba(122,162,255,0.06);
+  color: var(--text-1);
+}
+
+.cand-menu-item.active {
+  background: rgba(122,162,255,0.1);
+  border-color: rgba(122,162,255,0.25);
+  color: var(--blue);
+}
+
+.logout-btn {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--red);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  margin-top: 4px;
+}
+
+.logout-btn:hover { background: rgba(248,113,113,0.08); }
+
+/* ═══════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════ */
+.cand-main {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 32px 32px 48px;
+}
+
+/* ═══════════════════════════════════════════
+   PAGE TITLE
+═══════════════════════════════════════════ */
+.cand-page-title { margin-bottom: 24px; }
+.cand-page-title h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.cand-page-title p {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 5px;
+}
+
+/* ═══════════════════════════════════════════
+   SECTION HEADER ROW
+═══════════════════════════════════════════ */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.section-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.saved-count {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════
+   GRID
+═══════════════════════════════════════════ */
+.saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ═══════════════════════════════════════════
+   SAVED JOB CARD
+═══════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.saved-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.3s ease both;
+}
+
+.saved-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top left, rgba(122,162,255,0.04), transparent 65%);
+  pointer-events: none;
+}
+
+.saved-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(122,162,255,0.2);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+
+/* ── Bookmark icon top-right ── */
+.saved-bookmark {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  color: var(--green);
+  opacity: 0.7;
+}
+
+/* ── Card header ── */
+.saved-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  line-height: 1.3;
+  padding-right: 24px;          /* space for bookmark */
+  margin-bottom: 4px;
+}
+
+.saved-card-company {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-bottom: 12px;
+}
+
+/* ── Meta chips ── */
+.saved-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-3);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 3px 9px;
+}
+
+.meta-chip svg { flex-shrink: 0; opacity: 0.6; }
+
+/* ── Salary ── */
+.saved-salary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 14px;
+}
+
+.saved-salary.unknown { color: var(--text-3); font-weight: 400; }
+
+/* ── Divider ── */
+.card-divider {
+  height: 1px;
+  background: rgba(122,162,255,0.07);
+  margin: 0 -20px 14px;
+}
+
+/* ── Actions ── */
+.saved-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.saved-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 34px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.saved-btn.apply {
+  background: linear-gradient(135deg, rgba(122,162,255,0.18), rgba(122,162,255,0.08));
+  border-color: rgba(122,162,255,0.28);
+  color: var(--blue);
+}
+
+.saved-btn.apply:hover {
+  background: var(--blue);
+  color: #080c18;
+  border-color: var(--blue);
+}
+
+.saved-btn.apply.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.saved-btn.remove {
+  background: var(--red-dim);
+  border-color: var(--red-line);
+  color: var(--red);
+}
+
+.saved-btn.remove:hover {
+  background: rgba(248,113,113,0.18);
+  border-color: rgba(248,113,113,0.4);
+}
+
+/* removing animation */
+.saved-card.removing {
+  opacity: 0;
+  transform: scale(0.95) translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* ═══════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════ */
+.empty-state {
+  grid-column: 1 / -1;
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--text-3);
+}
+
+.empty-state-icon {
+  width: 56px;
+  height: 56px;
+  background: var(--blue-dim);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+}
+
+.empty-state-icon svg { stroke: var(--blue); }
+
+.empty-state h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 6px;
+}
+
+.empty-state p { font-size: 13px; }
+
+.empty-state a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.empty-state a:hover { text-decoration: underline; }
+
+/* ═══════════════════════════════════════════
+   SKELETON (reuse skeleton-loader.css classes)
+═══════════════════════════════════════════ */
+.skeleton-saved-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  min-height: 170px;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-saved-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(122,162,255,0.06) 40%,
+    rgba(122,162,255,0.10) 50%,
+    rgba(122,162,255,0.06) 60%,
+    transparent 100%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.sk { background: rgba(122,162,255,0.08); border-radius: 5px; display: block; }
+</style>
+</head>
+
+<body>
+
+<!-- ════════ SIDEBAR ════════ -->
+<aside class="cand-sidebar">
+  <a href="/savedjobs.html" style="text-decoration:none;"><h2 class="cand-brand">BeyondMatch</h2></a>
+  <nav class="cand-menu">
+    <a href="candidate-dashboard.html" class="cand-menu-item">Dashboard</a>
+    <a href="resume.html"              class="cand-menu-item">Resume Analysis</a>
+    <a href="jobmatches.html"          class="cand-menu-item">Job Matches</a>
+    <a href="savedjobs.html"           class="cand-menu-item active">Saved Jobs</a>
+    <a href="locatehire.html"          class="cand-menu-item">LocateHire</a>
+          <a href="cand_actions.html"          class="cand-menu-item">Candidate Actions</a>
+    <a href="settings.html"            class="cand-menu-item">Settings</a>
+  </nav>
+  <button class="logout-btn" onclick="unifiedLogout()">⏻ Logout</button>
+</aside>
+
+<!-- ════════ MAIN ════════ -->
+<main class="cand-main">
+
+  <div class="cand-page-title">
+    <h1>Saved Jobs</h1>
+    <p>Bookmarked opportunities you want to revisit.</p>
+  </div>
+
+  <div class="section-header">
+    <div>
+      <h3>Your Bookmarks</h3>
+      <div class="saved-count" id="savedCount"></div>
+    </div>
+  </div>
+
+  <div id="savedJobsGrid" class="saved-grid"></div>
+
+</main>
+
+<!-- ════════ INSTANT SKELETONS ════════ -->
+<script>
+(function() {
+  const grid = document.getElementById('savedJobsGrid');
+  if (!grid) return;
+
+  function skel() {
+    return `
+      <div class="skeleton-saved-card">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="sk" style="width:60%;height:16px;"></div>
+          <div class="sk" style="width:38%;height:12px;"></div>
+          <div style="display:flex;gap:7px;">
+            <div class="sk" style="width:90px;height:22px;border-radius:6px;"></div>
+            <div class="sk" style="width:80px;height:22px;border-radius:6px;"></div>
+          </div>
+          <div class="sk" style="width:30%;height:13px;"></div>
+          <div style="height:1px;background:rgba(122,162,255,0.07);margin:4px -20px;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+            <div class="sk" style="height:34px;border-radius:8px;"></div>
+            <div class="sk" style="height:34px;border-radius:8px;"></div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  grid.innerHTML = Array(6).fill(null).map(skel).join('');
+})();
+</script>
+
+<script type="module" src="auth.js"></script>
+<script type="module" src="savedjobs.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+/* ---------- GLOBAL ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+body {
+  background: #0e0f13;
+  color: #d9dce1;
+}
+
+/* ---------- NAVBAR ---------- */
+.landing-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 80px;
+  background: rgba(14,15,19,0.7);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.landing-navbar .brand {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #7eb0ff;
+}
+
+.landing-navbar nav a {
+  margin-right: 24px;
+  color: #cfd3ff;
+  text-decoration: none;
+}
+
+.nav-btn {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: #6c63ff;
+  color: white;
+}
+
+.nav-btn.outline {
+  background: transparent;
+  border: 1px solid #6c63ff;
+}
+
+/* ---------- HERO ---------- */
+.hero-wrapper {
+  min-height: calc(100vh - 80px);
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 80px;
+  align-items: center;
+  padding: 80px 100px;
+  background:
+    radial-gradient(1200px at 30% 20%, #1b2350 0%, transparent 60%),
+    linear-gradient(#0b0f1a, #070a14);
+}
+
+.hero-content h1 {
+  font-size: 56px;
+  line-height: 1.15;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.hero-content p {
+  max-width: 520px;
+  font-size: 18px;
+  color: #b8bdff;
+  margin-bottom: 36px;
+}
+
+/* ---------- CTA ---------- */
+.hero-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.hero-actions .primary {
+  background: #6c63ff;
+  color: white;
+  padding: 14px 28px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+}
+
+.hero-actions .secondary {
+  background: transparent;
+  border: 1px solid #6c63ff;
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 12px;
+}
+
+/* ---------- FEATURES ---------- */
+.hero-features {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feature-card {
+  background: linear-gradient(180deg, #12182b, #0d1224);
+  padding: 26px 28px;
+  border-radius: 18px;
+  border: 1px solid rgba(108,99,255,0.15);
+  transition: 0.25s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(108,99,255,0.15);
+}
+
+.feature-card h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  font-size: 14px;
+  color: #cfd3ff;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1024px) {
+  .hero-wrapper {
+    grid-template-columns: 1fr;
+    padding: 60px 40px;
+  }
+
+  .hero-features {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .feature-card {
+    flex: 1 1 260px;
+  }
+}
+
+/* AUTH MODAL – hidden by default */
+.auth-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 999;
+}
+
+.auth-card {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #12182b;
+  padding: 40px;
+  width: 360px;
+  border-radius: 16px;
+  z-index: 1000;
+}
+
+.auth-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 20, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 999;
+}
+.auth-card {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.96);
+  width: 360px;
+  padding: 32px;
+  border-radius: 18px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(22, 28, 52, 0.95),
+    rgba(14, 18, 38, 0.95)
+  );
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+
+  z-index: 1000;
+  transition: all 0.25s ease;
+}
+.auth-card h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 22px;
+  color: #ffffff;
+}
+.auth-card input {
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.auth-card input::placeholder {
+  color: #aab0ff;
+  opacity: 0.7;
+}
+
+.auth-card input:focus {
+  outline: none;
+  border-color: #6c63ff;
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.25);
+}
+
+
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+
+  background: linear-gradient(135deg, #6c63ff, #8b84ff);
+  border: none;
+  border-radius: 12px;
+
+  color: white;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(108, 99, 255, 0.35);
+}
+
+.auth-switch {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #cfd3ff;
+}
+
+.auth-switch a {
+  color: #6c63ff;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+.auth-card.show {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+/* ===== AUTH ERROR / SUCCESS MESSAGE ===== */
+.auth-message {
+  display: none;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+.auth-message.error {
+  display: block;
+  background: rgba(255, 86, 86, 0.12);
+  color: #ff9a9a;
+  border: 1px solid rgba(255, 86, 86, 0.35);
+}
+
+.auth-message.success {
+  display: block;
+  background: rgba(86, 242, 159, 0.12);
+  color: #7ff2b4;
+  border: 1px solid rgba(86, 242, 159, 0.35);
+}
+
+.auth-card select {
+  padding: 12px;
+  border-radius: 10px;
+  background: #1c2030;
+  border: none;
+  color: white;
+  font-size: 15px;
+}
+
+
+/* 🔴 Unified Logout – Sidebar aligned */
+.logout-btn {
+  width: 100%;
+  text-align: left;
+
+  padding: 3px 10px;        /* match other menu items */
+
+  background: transparent;
+  border: none;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  color: #f87171;            /* red logout */
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout-btn:hover {
+  background: rgba(248, 113, 113, 0.1);
+  color: #ef4444;
+  border-radius: 8px;
+
+}

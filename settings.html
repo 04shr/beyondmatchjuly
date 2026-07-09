@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings – BeyondMatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  --bg:          #0b0e16;
+  --card:        #131726;
+  --card-border: rgba(122,162,255,0.08);
+  --blue:        #7aa2ff;
+  --blue-dim:    rgba(122,162,255,0.10);
+  --blue-line:   rgba(122,162,255,0.22);
+  --green:       #4ade80;
+  --green-dim:   rgba(34,197,94,0.10);
+  --red:         #f87171;
+  --red-dim:     rgba(248,113,113,0.08);
+  --red-line:    rgba(248,113,113,0.25);
+  --amber:       #fbbf24;
+  --text-1:      #e2e8f0;
+  --text-2:      #9bb3ff;
+  --text-3:      #88add9;
+  --sidebar-w:   220px;
+  --radius-lg:   14px;
+  --radius-sm:   8px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+::-webkit-scrollbar              { width: 5px; }
+::-webkit-scrollbar-track        { background: var(--bg); }
+::-webkit-scrollbar-thumb        { background: #1e2540; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--blue); }
+
+body {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: #0d1018;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 28px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.brand {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 36px;
+  letter-spacing: -0.02em;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.menu-item {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #a8b3d1;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.menu-item:hover { background: rgba(122,162,255,0.06); color: var(--text-1); }
+.menu-item.active {
+  background: rgba(122,162,255,0.1);
+  border-color: rgba(122,162,255,0.25);
+  color: var(--blue);
+}
+
+.logout-btn {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--red);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  margin-top: 4px;
+}
+.logout-btn:hover { background: rgba(248,113,113,0.08); }
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 32px 40px 48px;
+}
+
+.page-title { margin-bottom: 28px; }
+.page-title h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+.page-title p  { font-size: 13px; color: var(--text-3); margin-top: 5px; }
+
+/* ── GRID ── */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media (max-width: 1100px) { .settings-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 720px)  { .settings-grid { grid-template-columns: 1fr; } }
+
+/* ── SETTINGS CARD ── */
+.settings-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.settings-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top left, rgba(122,162,255,0.04), transparent 65%);
+  pointer-events: none;
+}
+
+.settings-card:hover { border-color: rgba(122,162,255,0.15); }
+
+.settings-card.danger { border-color: rgba(248,113,113,0.18); }
+.settings-card.danger::before { background: radial-gradient(ellipse at top left, rgba(248,113,113,0.04), transparent 65%); }
+.settings-card.danger:hover { border-color: rgba(248,113,113,0.32); }
+
+/* ── CARD HEADER ── */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(122,162,255,0.07);
+}
+
+.card-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.card-icon.blue  { background: rgba(122,162,255,0.12); }
+.card-icon.green { background: rgba(74,222,128,0.10); }
+.card-icon.red   { background: rgba(248,113,113,0.10); }
+
+.card-title { font-size: 14px; font-weight: 600; color: var(--text-1); }
+
+/* ── SETTING ROWS ── */
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  gap: 12px;
+}
+.setting-row:last-child { border-bottom: none; }
+
+.setting-label { font-size: 12px; color: var(--text-3); font-weight: 500; white-space: nowrap; }
+.setting-value { font-size: 13px; color: var(--text-1); text-align: right; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+
+/* ── ROLE BADGE ── */
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.role-badge.candidate { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue-line); }
+.role-badge.recruiter { background: var(--green-dim); color: var(--green); border: 1px solid rgba(74,222,128,0.25); }
+.role-badge.admin     { background: rgba(251,191,36,0.1); color: var(--amber); border: 1px solid rgba(251,191,36,0.25); }
+
+/* ── ACTION BUTTONS ── */
+.action-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(122,162,255,0.1);
+  border-radius: var(--radius-sm);
+  background: rgba(122,162,255,0.04);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+.action-btn:hover { background: rgba(122,162,255,0.09); border-color: rgba(122,162,255,0.25); transform: translateX(3px); }
+.action-btn:last-child { margin-bottom: 0; }
+
+.action-btn-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.action-btn-icon.blue  { background: var(--blue-dim); }
+.action-btn-icon.green { background: var(--green-dim); }
+
+/* ── BACK BUTTON ── */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  transition: color 0.2s;
+}
+.back-btn:hover { color: var(--blue); }
+
+/* ── DANGER ZONE ── */
+.danger-note {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  padding: 10px 12px;
+  background: rgba(248,113,113,0.05);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(248,113,113,0.1);
+}
+
+.danger-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--red-line);
+  border-radius: var(--radius-sm);
+  background: var(--red-dim);
+  color: var(--red);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.danger-btn:hover { background: rgba(248,113,113,0.16); border-color: rgba(248,113,113,0.4); }
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR — populated dynamically by role -->
+<aside class="sidebar">
+  <h2 class="brand">BeyondMatch</h2>
+  <nav class="menu" id="sidebarMenu">
+    <!-- injected by JS -->
+  </nav>
+  <button class="logout-btn" onclick="unifiedLogout()">⏻ Logout</button>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <button class="back-btn" onclick="goBack()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Go Back
+  </button>
+
+  <div class="page-title">
+    <h1>Account Settings</h1>
+    <p>Manage your account details and preferences.</p>
+  </div>
+
+  <div class="settings-grid">
+
+    <!-- ACCOUNT DETAILS -->
+    <div class="settings-card">
+      <div class="card-header">
+        <div class="card-icon blue">👤</div>
+        <div class="card-title">Account Details</div>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Email</span>
+        <span class="setting-value" id="email">Loading…</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Role</span>
+        <span class="role-badge candidate" id="role">Loading…</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">User ID</span>
+        <span class="setting-value" id="uid" style="font-size:11px;opacity:0.6;">—</span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Member Since</span>
+        <span class="setting-value" id="since">—</span>
+      </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="settings-card">
+      <div class="card-header">
+        <div class="card-icon green">⚡</div>
+        <div class="card-title">Quick Actions</div>
+      </div>
+      <button class="action-btn" onclick="resetPassword()">
+        <div class="action-btn-icon blue">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7aa2ff" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        </div>
+        Change Password
+      </button>
+      <button class="action-btn" onclick="downloadData()">
+        <div class="action-btn-icon green">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </div>
+        Download My Data
+      </button>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div class="settings-card danger">
+      <div class="card-header">
+        <div class="card-icon red">⚠️</div>
+        <div class="card-title">Danger Zone</div>
+      </div>
+      <div class="danger-note">
+        These actions are permanent and cannot be undone. Please proceed with caution.
+      </div>
+      <button class="danger-btn" onclick="deleteAccount()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+        </svg>
+        Delete Account
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<script src="api.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, sendPasswordResetEmail, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCbrwCaaQYEFCF1FJto_O3OYi68qTOqGQc",
+  authDomain: "beyondmatch-a714f.firebaseapp.com",
+  projectId: "beyondmatch-a714f",
+  storageBucket: "beyondmatch-a714f.firebasestorage.app",
+  messagingSenderId: "16758090560",
+  appId: "1:16758090560:web:89f207139970c97592a8a5"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+/* ── Nav links per role ── */
+const NAV = {
+  candidate: [
+    { href: "candidate-dashboard.html", label: "Dashboard" },
+    { href: "resume.html",              label: "Resume Analysis" },
+    { href: "jobmatches.html",          label: "Job Matches" },
+    { href: "savedjobs.html",           label: "Saved Jobs" },
+    { href: "locatehire.html",          label: "LocateHire" },
+    { href: "settings.html",            label: "Settings" },
+  ],
+  recruiter: [
+    { href: "rec-dash.html",      label: "Dashboard" },
+    { href: "rec-postjob.html",     label: "Post Job" },
+    { href: "rec-jobs.html",      label: "My Jobs" },
+    { href: "cand-matches.html",  label: "Candidate Matches" },
+    { href: "rec-actions.html",   label: "Recruiter Actions" },
+    { href: "settings.html",      label: "Settings" },
+  ],
+  admin: [
+    { href: "admin.html",    label: "Dashboard" },
+    { href: "settings.html", label: "Settings" },
+  ]
+};
+
+function buildNav(role) {
+  const links = NAV[role] || NAV.candidate;
+  document.getElementById("sidebarMenu").innerHTML = links.map(l => `
+    <a href="${l.href}" class="menu-item${l.href === 'settings.html' ? ' active' : ''}">${l.label}</a>
+  `).join("");
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = "index.html"; return; }
+
+  document.getElementById("email").textContent = user.email;
+  document.getElementById("uid").textContent   = user.uid;
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  const data = snap.exists() ? snap.data() : {};
+
+  const roleValue = data.role || "candidate";
+  const roleEl    = document.getElementById("role");
+  roleEl.textContent = roleValue;
+  roleEl.className   = `role-badge ${roleValue}`;
+
+  /* Build the correct sidebar for this role */
+  buildNav(roleValue);
+
+  if (data.createdAt?.toDate) {
+    const d = data.createdAt.toDate();
+    document.getElementById("since").textContent =
+      d.toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+  } else {
+    document.getElementById("since").textContent = "Recently";
+  }
+});
+
+const DASH = { admin: "admin.html", recruiter: "rec-dash.html", candidate: "candidate-dashboard.html" };
+
+window.goBack = async () => {
+  const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
+  const role = snap.exists() ? snap.data().role : "candidate";
+  location.href = DASH[role] || "candidate-dashboard.html";
+};
+
+window.resetPassword = async () => {
+  try {
+    await sendPasswordResetEmail(auth, auth.currentUser.email);
+    showToast('Password reset email sent to ' + auth.currentUser.email, 'success');
+  } catch (e) {
+    showToast(e.message, 'error');
+  }
+};
+
+window.downloadData = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    const data = snap.exists() ? snap.data() : {};
+    const clean = JSON.parse(JSON.stringify(data, (key, val) =>
+      val?.toDate ? val.toDate().toISOString() : val
+    ));
+    const payload = { uid: user.uid, email: user.email, exportedAt: new Date().toISOString(), profile: clean };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = Object.assign(document.createElement('a'), { href: url, download: 'beyondmatch_my_data.json' });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Your data has been downloaded.', 'success');
+  } catch (e) {
+    showToast('Failed to export data: ' + e.message, 'error');
+  }
+};
+
+window.deleteAccount = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+  const confirmed = confirm('Delete your account? This will permanently delete your account and all your data. This cannot be undone.');
+  if (!confirmed) return;
+  const password = prompt('Please enter your password to confirm:');
+  if (!password) return;
+  try {
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+    await deleteDoc(doc(db, 'users', user.uid));
+    await deleteUser(user);
+    showToast('Your account has been deleted.', 'success');
+    await new Promise(r => setTimeout(r, 1500));
+    window.location.href = 'index.html';
+  } catch (e) {
+    if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+      showToast('Incorrect password. Account not deleted.', 'error');
+    } else {
+      showToast('Failed to delete account: ' + e.message, 'error');
+    }
+  }
+};
+
+window.unifiedLogout = async () => {
+  await auth.signOut();
+  window.location.href = "index.html";
+};
+</script>
+
+</body>
+</html>

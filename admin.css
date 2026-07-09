@@ -1,0 +1,92 @@
+/* =====================================================
+   ADMIN DASHBOARD – EXTENDS style.css
+===================================================== */
+
+/* no page scrolling */
+body {
+  overflow: hidden;
+}
+
+/* main admin layout */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 2.3fr 1fr;
+  gap: 20px;
+
+  /* below title, fits screen */
+  height: calc(100vh - 150px);
+}
+
+/* LEFT: Power BI card */
+.admin-powerbi-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-powerbi-card h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #cfd6ff;
+}
+
+.admin-powerbi-card iframe {
+  flex-grow: 1;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: #0e0f13;
+}
+
+/* RIGHT: stacked activity cards */
+.admin-activity-stack {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 20px;
+}
+
+.admin-activity-stack .card {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-activity-stack .card h3 {
+  font-size: 15px;
+  margin-bottom: 12px;
+  color: #cfd6ff;
+}
+
+/* safety: no internal scrollbars */
+.admin-grid,
+.admin-powerbi-card,
+.admin-activity-stack,
+.admin-activity-stack .card {
+  overflow: hidden;
+}
+
+/* 🔴 Unified Logout – Sidebar aligned */
+.logout-btn {
+  width: 100%;
+  text-align: left;
+
+  padding: 3px 10px;        /* match other menu items */
+
+  background: transparent;
+  border: none;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  color: #f87171;            /* red logout */
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout-btn:hover {
+  background: rgba(248, 113, 113, 0.1);
+  color: #ef4444;
+  border-radius: 8px;
+
+}

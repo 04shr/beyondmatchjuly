@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard – BeyondMatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/powerbi-client@2.23.1/dist/powerbi.min.js"></script>
+
+<style>
+:root {
+  --bg:          #0b0e16;
+  --card:        #131726;
+  --card-hi:     #161d30;
+  --border:      rgba(122,162,255,0.08);
+  --border-hi:   rgba(122,162,255,0.18);
+  --blue:        #7aa2ff;
+  --blue-dim:    rgba(122,162,255,0.10);
+  --green:       #4ade80;
+  --green-dim:   rgba(74,222,128,0.10);
+  --amber:       #fbbf24;
+  --amber-dim:   rgba(251,191,36,0.10);
+  --red:         #f87171;
+  --purple:      #a78bfa;
+  --purple-dim:  rgba(167,139,250,0.10);
+  --text-1:      #e2e8f0;
+  --text-2:      #b0bcd8;
+  --text-3:      #6b7fa8;
+  --sidebar-w:   220px;
+  --r-lg: 14px; --r-md: 10px; --r-sm: 8px;
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:#1e2540; border-radius:10px; }
+::-webkit-scrollbar-thumb:hover { background:var(--blue); }
+
+body { display:flex; min-height:100vh; background:var(--bg); color:var(--text-1);
+  font-family:'DM Sans',sans-serif; font-size:14px; overflow:hidden; }
+
+/* ── SIDEBAR ── */
+.sidebar { width:var(--sidebar-w); min-height:100vh; background:#0d1018;
+  border-right:1px solid rgba(255,255,255,0.05); padding:28px 16px 24px;
+  display:flex; flex-direction:column; flex-shrink:0; }
+.brand { font-size:1.45rem; font-weight:700; color:var(--blue); margin-bottom:36px;
+  letter-spacing:-0.02em; text-decoration:none; display:block; }
+.nav { display:flex; flex-direction:column; gap:4px; flex:1; }
+.nav-link { display:block; font-size:13.5px; font-weight:500; color:#a8b3d1;
+  padding:10px 14px; border-radius:var(--r-sm); text-decoration:none;
+  border:1px solid transparent; transition:background .2s,color .2s,border-color .2s; }
+.nav-link:hover { background:rgba(122,162,255,0.06); color:var(--text-1); }
+.nav-link.active { background:var(--blue-dim); border-color:rgba(122,162,255,0.25); color:var(--blue); }
+.logout-btn { width:100%; text-align:left; background:transparent; border:none;
+  font-family:inherit; font-size:13.5px; font-weight:500; color:var(--red);
+  padding:10px 14px; border-radius:var(--r-sm); cursor:pointer; display:flex;
+  align-items:center; gap:8px; transition:background .2s; margin-top:4px; }
+.logout-btn:hover { background:rgba(248,113,113,0.08); }
+
+/* ── MAIN ── */
+.main { flex:1; min-width:0; height:100vh; overflow:hidden;
+  padding:24px 24px 24px; display:flex; flex-direction:column; gap:16px; }
+
+/* ── HEADER ── */
+.header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; flex-shrink:0; }
+.header h1 { font-size:20px; font-weight:700; letter-spacing:-0.02em; }
+.header p { font-size:12px; color:var(--text-3); margin-top:3px; }
+
+/* ── CANDIDATE PILL ── */
+.cand-pill { display:flex; align-items:center; gap:10px; background:var(--card);
+  border:1px solid var(--border); padding:8px 14px; border-radius:30px;
+  transition:border-color .2s; }
+.cand-pill:hover { border-color:var(--border-hi); }
+.avatar { width:32px; height:32px; border-radius:50%;
+  background:linear-gradient(135deg,#5b7fff,var(--purple));
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; color:#fff; flex-shrink:0; letter-spacing:.5px; }
+.pill-name { font-size:13px; font-weight:600; color:var(--text-1); }
+.pill-role { font-size:11px; color:var(--blue); font-weight:500; }
+.pill-id   { font-size:9.5px; color:var(--text-3); font-family:monospace; opacity:.7; margin-top:1px; }
+
+/* ── KPI STRIP ── */
+.kpi-row { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+.kpi-card { background:var(--card); border:1px solid var(--border); border-radius:var(--r-lg);
+  padding:14px 16px; display:flex; flex-direction:column; gap:4px;
+  position:relative; overflow:hidden; transition:border-color .2s,transform .18s; }
+.kpi-card:hover { border-color:var(--border-hi); transform:translateY(-1px); }
+.kpi-icon { position:absolute; right:12px; top:12px; font-size:16px; opacity:.18; }
+.kpi-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); }
+.kpi-value { font-size:26px; font-weight:700; letter-spacing:-0.03em; line-height:1.1; }
+.kpi-sub { font-size:11px; color:var(--text-3); }
+.kpi-badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:10px;
+  font-size:10.5px; font-weight:700; margin-top:3px; width:fit-content; }
+.kpi-badge.green  { background:var(--green-dim);  color:var(--green); }
+.kpi-badge.blue   { background:var(--blue-dim);   color:var(--blue); }
+.kpi-badge.amber  { background:var(--amber-dim);  color:var(--amber); }
+.kpi-badge.purple { background:var(--purple-dim); color:var(--purple); }
+
+/* ── SHIMMER ── */
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.shim { background:linear-gradient(90deg,#1a2035 25%,#212942 50%,#1a2035 75%);
+  background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:6px; }
+
+/* ── CHART GRIDS ── */
+.g3 { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:12px; }
+.g2 { display:grid; grid-template-columns:1fr 1.7fr; gap:12px; }
+
+/* ── CARD ── */
+.card { background:var(--card); border:1px solid var(--border); border-radius:var(--r-lg);
+  padding:16px 18px; display:flex; flex-direction:column; gap:12px; }
+.ct { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#9bb3ff; }
+.cs { font-size:11px; color:var(--text-3); margin-top:2px; font-weight:400; letter-spacing:0; text-transform:none; }
+.cw { position:relative; flex:1; min-height:150px; }
+.divider { height:1px; background:rgba(255,255,255,0.05); flex-shrink:0; }
+
+/* ── RECOMMENDED ROLES CHIPS ── */
+.roles-row { display:flex; flex-wrap:wrap; gap:8px; }
+.role-chip { padding:5px 13px; border-radius:20px; font-size:12px; font-weight:600;
+  background:var(--purple-dim); border:1px solid rgba(167,139,250,0.2); color:var(--purple); }
+
+/* ── SKILLS CLOUD ── */
+.skills-cloud { display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+.sk { padding:4px 11px; border-radius:20px; font-weight:600; cursor:default;
+  transition:background .2s,transform .15s; }
+.sk:hover { transform:scale(1.06); }
+.sk.matched { background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.22); color:var(--green); }
+.sk.missing { background:var(--amber-dim); border:1px solid rgba(251,191,36,0.2); color:var(--amber); }
+.sk.neutral { background:var(--blue-dim); border:1px solid rgba(122,162,255,0.15); color:var(--blue); }
+.sk.lg { font-size:15px; padding:6px 14px; }
+.sk.md { font-size:12.5px; }
+.sk.sm { font-size:10.5px; opacity:.75; }
+
+/* ── MISSING SKILLS SECTION ── */
+.gap-row { display:flex; align-items:center; gap:8px; padding:6px 0; }
+.gap-row + .gap-row { border-top:1px solid rgba(255,255,255,0.04); }
+.gap-icon { font-size:12px; flex-shrink:0; }
+.gap-skill { font-size:12.5px; color:var(--amber); font-weight:500; }
+.gap-count { font-size:10.5px; color:var(--text-3); margin-left:auto; }
+
+/* ── TOP 3 SCORE RINGS ── */
+.rings-row { display:flex; gap:12px; justify-content:space-around; }
+.ring-wrap { display:flex; flex-direction:column; align-items:center; gap:5px; cursor:default; }
+.ring-label { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--text-3); max-width:82px; text-align:center; line-height:1.3; }
+.ring-company { font-size:10.5px; color:var(--text-2); font-weight:500; max-width:82px;
+  text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ── COMPANY BARS ── */
+.co-row { display:flex; align-items:center; gap:10px; padding:5px 0; }
+.co-row + .co-row { border-top:1px solid rgba(255,255,255,0.04); }
+.co-name { font-size:12px; font-weight:500; color:var(--text-2); width:110px; flex-shrink:0;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.co-bar-bg { flex:1; background:rgba(255,255,255,0.05); border-radius:4px; height:5px; overflow:hidden; }
+.co-bar { height:100%; background:linear-gradient(90deg,var(--blue),#5b7fff);
+  border-radius:4px; width:0; transition:width 1.2s cubic-bezier(.4,0,.2,1); }
+.co-score { font-size:11px; color:var(--green); width:36px; text-align:right; flex-shrink:0; font-weight:600; }
+
+/* ── JOB TABLE ── */
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--text-3); text-align:left; padding:0 10px 10px; }
+.tbl td { font-size:12.5px; color:var(--text-2); padding:9px 10px;
+  border-top:1px solid rgba(255,255,255,0.04); }
+.tbl tr:hover td { background:rgba(122,162,255,0.03); }
+.tbl .ttl { color:var(--blue); font-weight:500; max-width:220px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.tbl .loc { color:var(--text-3); font-size:11.5px; }
+.mb { display:inline-flex; align-items:center; padding:2px 8px;
+  border-radius:10px; font-size:11px; font-weight:700; }
+.mb.hi { background:rgba(74,222,128,0.12);  color:var(--green); }
+.mb.md { background:var(--blue-dim);         color:var(--blue); }
+.mb.lo { background:var(--amber-dim);        color:var(--amber); }
+.level-chip { display:inline-flex; padding:2px 8px; border-radius:10px;
+  font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.level-chip.experienced { background:rgba(74,222,128,0.1); color:var(--green); }
+.level-chip.junior      { background:var(--blue-dim);      color:var(--blue); }
+.level-chip.senior      { background:var(--purple-dim);    color:var(--purple); }
+.apply-btn { padding:4px 11px; border-radius:6px; border:1px solid rgba(122,162,255,0.2);
+  background:transparent; color:var(--blue); font-family:inherit; font-size:11.5px;
+  font-weight:600; cursor:pointer; transition:background .2s,border-color .2s; }
+.apply-btn:hover { background:var(--blue-dim); border-color:rgba(122,162,255,0.35); }
+.apply-btn:disabled { opacity:.3; cursor:not-allowed; }
+
+/* ── EMPTY ── */
+.empty { display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:8px; padding:30px 20px; color:var(--text-3); font-size:13px; text-align:center; }
+.empty .ei { font-size:26px; opacity:.3; }
+
+/* ── SETUP ALERT BANNER ── */
+#setupAlert {
+  display:none; align-items:flex-start; gap:14px;
+  background:linear-gradient(135deg,rgba(122,162,255,0.07),rgba(167,139,250,0.07));
+  border:1px solid rgba(122,162,255,0.22); border-radius:var(--r-lg);
+  padding:16px 20px; }
+#setupAlert .sa-icon { font-size:22px; flex-shrink:0; margin-top:1px; }
+#setupAlert .sa-body { flex:1; }
+#setupAlert .sa-title { font-size:14px; font-weight:700; color:var(--text-1); margin-bottom:4px; }
+#setupAlert .sa-msg   { font-size:12.5px; color:var(--text-2); line-height:1.6; }
+#setupAlert .sa-steps { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px; }
+#setupAlert .sa-step  { display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(122,162,255,0.15);
+  border-radius:20px; padding:5px 13px; font-size:12px; font-weight:600; color:var(--blue); }
+#setupAlert .sa-step a { color:inherit; text-decoration:none; }
+#setupAlert .sa-step a:hover { text-decoration:underline; }
+#setupAlert .sa-arrow { color:var(--text-3); font-size:13px; }
+
+/* ── LOADING BAR ── */
+#lbar { position:fixed; top:0; left:0; height:2px; z-index:999;
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  width:0; transition:width .35s ease; }
+
+/* ── REFRESH ── */
+.rbtn { background:var(--blue-dim); border:1px solid rgba(122,162,255,0.2);
+  color:var(--blue); font-family:inherit; font-size:12px; font-weight:600;
+  padding:6px 13px; border-radius:var(--r-sm); cursor:pointer;
+  transition:background .2s; display:flex; align-items:center; gap:6px; }
+.rbtn:hover { background:rgba(122,162,255,0.14); }
+.rbtn.spin svg { animation:spin .85s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── POWER BI EMBED — fills all remaining vertical space, no zoom needed ── */
+#pbi-container {
+  flex: 1;
+  min-height: 0;        /* lets flexbox shrink past content size */
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+/* iframe Power BI injects must fill the container */
+#pbi-container iframe {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+}
+#pbi-shimmer {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--r-lg);
+}
+</style>
+</head>
+<body>
+
+<div id="lbar"></div>
+
+<aside class="sidebar">
+  <a href="/candidate-dashboard.html" class="brand">BeyondMatch</a>
+  <nav class="nav">
+    <a href="candidate-dashboard.html" class="nav-link active">Dashboard</a>
+    <a href="resume.html"              class="nav-link">Resume Analysis</a>
+    <a href="jobmatches.html"          class="nav-link">Job Matches</a>
+    <a href="savedjobs.html"           class="nav-link">Saved Jobs</a>
+    <a href="locatehire.html"          class="nav-link">LocateHire</a>
+    <a href="cand_actions.html"          class="nav-link">Candidate Actions</a>
+    <a href="settings.html"            class="nav-link">Settings</a>
+  </nav>
+  <button class="logout-btn" onclick="unifiedLogout()">⏻ Logout</button>
+</aside>
+
+<main class="main">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <h1>My Dashboard</h1>
+      <p id="sub">Loading your dashboard…</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <div class="cand-pill" id="pill" style="display:none;">
+        <div class="avatar" id="av">?</div>
+        <div>
+          <div class="pill-name" id="pname">—</div>
+          <div class="pill-role" id="prole">—</div>
+          <div class="pill-id"   id="pid">—</div>
+        </div>
+      </div>
+      <button class="rbtn" id="rbtn" onclick="boot()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- ERROR BANNER -->
+  <div id="errBanner" style="display:none;background:rgba(248,113,113,0.1);
+    border:1px solid rgba(248,113,113,0.25);border-radius:12px;
+    padding:14px 18px;color:#f87171;font-size:13px;flex-shrink:0;"></div>
+
+  <!-- POWER BI EMBED -->
+  <div id="pbi-container">
+    <div id="pbi-shimmer" class="shim"></div>
+  </div>
+
+</main>
+
+<script>
+/* =========================================================
+   PASTE VALUES FROM YOUR POWER BI DEVELOPER HERE
+   When developer sends EMBED_ACCESS_TOKEN, EMBED_URL,
+   REPORT_ID and TOKEN_TYPE from the playground, paste them:
+========================================================= */
+const HARDCODED = {
+  accessToken: "",   // ← paste EMBED_ACCESS_TOKEN value here
+  embedUrl:    "https://app.powerbi.com/reportEmbed?reportId=ee6e976c-5b91-4920-b8d5-41da6b4a4eb0&autoAuth=true&ctid=0c9e228c-dc90-4c87-941e-fea8952b7dd1",
+  reportId:    "ee6e976c-5b91-4920-b8d5-41da6b4a4eb0",
+  tokenType:   "0"   // "0" = AAD (autoAuth=true)
+};
+
+const API_LAMBDA = "https:///getEmbedUrl";
+const FALLBACK_REPORT_ID = "ee6e976c-5b91-4920-b8d5-41da6b4a4eb0";
+
+/* ── helpers ── */
+const $ = id => document.getElementById(id);
+
+function showErr(msg) {
+  const b = $("errBanner");
+  if (b) { b.textContent = msg; b.style.display = "block"; }
+}
+
+function embedReport(accessToken, embedUrl, reportId, tokenType) {
+  const models    = window["powerbi-client"].models;
+  const container = $("pbi-container");
+  $("pbi-shimmer")?.remove();
+
+  const tType = (tokenType === "0" || tokenType === 0)
+    ? models.TokenType.Aad
+    : models.TokenType.Embed;
+
+  const report = window.powerbi.embed(container, {
+    type:        "report",
+    id:          reportId || FALLBACK_REPORT_ID,
+    embedUrl:    embedUrl,
+    accessToken: accessToken,
+    tokenType:   tType,
+    permissions: models.Permissions.All,
+    settings: {
+      navContentPaneEnabled: false,
+      background:            models.BackgroundType.Transparent,
+      panes: {
+        filters:      { visible: false },
+        pageNavigation: { visible: true }
+      }
+    }
+  });
+
+  report.on("error", e => {
+    console.error("PBI error:", e.detail);
+    showErr(`Power BI error: ${e.detail?.message || "unknown"}`);
+  });
+
+  report.on("loaded",   () => console.log("✅ Report loaded"));
+  report.on("rendered", () => console.log("✅ Report rendered"));
+}
+
+/* ── MAIN BOOT ── */
+async function boot() {
+  try {
+    if (!window.auth || !window.db || !window.auth.currentUser) {
+      console.warn("Auth not ready"); return;
+    }
+
+    const user  = window.auth.currentUser;
+    const email = user.email;
+
+    /* ── Firestore pill ── */
+    const { getDoc, doc } = await import(
+      "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+    );
+    const uSnap = await getDoc(doc(window.db, "users", user.uid));
+    if (!uSnap.exists()) { showErr("User data not found"); return; }
+
+    const ud  = uSnap.data();
+    const cid = ud.latest_candidate_id || ud.candidate_id || "—";
+    let name  = email.split("@")[0];
+    let role  = "General";
+
+    try {
+      const cSnap = await getDoc(doc(window.db, "candidates", cid));
+      if (cSnap.exists()) {
+        name = cSnap.data().name         || name;
+        role = cSnap.data().applied_role || role;
+      }
+    } catch(e) {}
+
+    const ini = name.trim().split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase();
+    $("av").textContent    = ini;
+    $("pname").textContent = name;
+    $("prole").textContent = role;
+    $("pid").textContent   = `ID: ${cid}`;
+    $("pill").style.display = "flex";
+    $("sub").textContent   = "Analytics powered by Power BI";
+
+    /* ── PATH A: use hardcoded values if developer has pasted them ── */
+    if (HARDCODED.accessToken && HARDCODED.embedUrl) {
+      console.log("✅ Using hardcoded embed values");
+      embedReport(HARDCODED.accessToken, HARDCODED.embedUrl,
+                  HARDCODED.reportId, HARDCODED.tokenType);
+      return;
+    }
+
+    /* ── PATH B: call Lambda ── */
+    console.log("Calling Lambda for embed token...");
+    const res  = await fetch(API_LAMBDA, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ userEmail: email })
+    });
+
+    const data    = await res.json();
+    const payload = (data.body && typeof data.body === "string")
+      ? JSON.parse(data.body) : data;
+
+    console.log("✅ Lambda payload:", payload);
+
+    // Surface Lambda errors clearly
+    if (!res.ok || payload.error) {
+      const errDetail = (payload.error && typeof payload.error === "object")
+        ? (payload.error.message || payload.error.errorCode || JSON.stringify(payload.error))
+        : (payload.error || `HTTP ${res.status}`);
+      showErr(`❌ Lambda error (${res.status}): ${errDetail}`);
+      console.error("Lambda error detail:", payload.error);
+      return;
+    }
+
+    const accessToken = payload.embedToken || payload.token || payload.access_token;
+    const embedUrl    = payload.embedUrl   || payload.embed_url;
+    const reportId    = payload.reportId   || payload.report_id || FALLBACK_REPORT_ID;
+    const tokenType   = payload.tokenType  || "1";
+
+    if (!accessToken || !embedUrl) {
+      showErr(`Lambda missing fields — token: ${!!accessToken}, url: ${!!embedUrl}`);
+      return;
+    }
+
+    embedReport(accessToken, embedUrl, reportId, tokenType);
+
+  } catch(err) {
+    console.error("❌ Dashboard error:", err);
+    showErr(`Failed to load: ${err.message}`);
+  }
+}
+
+/* ── INIT ── */
+(function init() {
+  let tries = 0;
+
+  const t = setInterval(() => {
+    tries++;
+
+    if (window.auth && window.db) {
+      clearInterval(t);
+
+      if (typeof window.auth.onAuthStateChanged === "function") {
+        window.auth.onAuthStateChanged(user => {
+          if (user) {
+            boot();
+          }
+        });
+      } else {
+        boot();
+      }
+    }
+
+    if (tries > 50) {
+      clearInterval(t);
+      console.warn("Auth timeout");
+    }
+  }, 100);
+})();
+</script>
+
+<script type="module" src="auth.js"></script>
+<script type="module" src="api.js"></script>
+</body>
+</html>

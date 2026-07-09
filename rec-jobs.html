@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Jobs – BeyondMatch</title>
+  <link rel="stylesheet" href="recruiter-matches.css" />
+  <link rel="stylesheet" href="skeleton-loader.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+  <a href="/rec-jobs.html" style="text-decoration:none;"><h2 class="cand-brand">BeyondMatch</h2></a>
+  <nav class="menu">
+    <a href="rec-dash.html"     class="menu-item">Dashboard</a>
+      <a href="rec-postjob.html"     class="menu-item">Post Job</a>
+    <a href="rec-jobs.html"     class="menu-item active">My Jobs</a>
+    <a href="cand-matches.html" class="menu-item">Candidate Matches</a>
+    <a href="rec-actions.html"  class="menu-item">Recruiter Actions</a>
+    <a href="settings.html"     class="menu-item">Settings</a>
+    <button class="menu-item logout-btn" onclick="unifiedLogout()">⏻ Logout</button>
+  </nav>
+</aside>
+
+<main class="main jobs-modern">
+
+  <div class="page-header-modern">
+    <h1 id="jobsPageTitle">My Jobs</h1>
+    <p>Manage and view posted jobs</p>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div class="jobs-filter-modern">
+    <div class="toggle-modern">
+      <button id="myOrgBtn"   class="toggle-pill active">My Organisation</button>
+      <button id="allJobsBtn" class="toggle-pill secondary">All Jobs</button>
+    </div>
+
+    <select id="locationFilter" class="modern-select">
+      <option value="">All Locations</option>
+    </select>
+
+    <select id="sortSelect" class="modern-select">
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+      <option value="title">Title A–Z</option>
+    </select>
+
+    <input type="text" id="searchInput" class="modern-search input" placeholder="Search job title…" />
+  </div>
+
+  <!-- JOBS GRID -->
+  <div class="jobs-grid-wrapper">
+    <div id="jobsTable" class="jobs-grid"></div>
+  </div>
+
+</main>
+
+<!-- Instant skeletons -->
+<script>
+(function() {
+  const grid = document.getElementById('jobsTable');
+  if (!grid) return;
+  function skel() {
+    return `
+      <div class="skeleton-candidate-card">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="skeleton-title" style="width:65%;height:16px;margin-bottom:6px;"></div>
+          <div class="skeleton-subtitle" style="width:40%;height:12px;"></div>
+          <div style="display:flex;gap:6px;">
+            <div class="skeleton-chip"></div>
+            <div class="skeleton-chip" style="width:80px;"></div>
+          </div>
+          <div class="skeleton-subtitle" style="width:30%;height:13px;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;">
+            <div class="skeleton-btn"></div>
+            <div class="skeleton-btn"></div>
+          </div>
+        </div>
+      </div>`;
+  }
+  grid.innerHTML = Array(6).fill(null).map(skel).join('');
+})();
+</script>
+
+<script src="skeleton-loader.js"></script>
+<script type="module" src="auth.js"></script>
+<script type="module" src="api.js"></script>
+</body>
+</html>

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Matches – BeyondMatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS — matched to resume.html
+═══════════════════════════════════════════ */
+:root {
+  --bg:          #0b0e16;
+  --surface:     #0f1220;
+  --card:        #131726;
+  --card-border: rgba(122,162,255,0.08);
+  --card-hover:  rgba(122,162,255,0.04);
+
+  --blue:        #7aa2ff;
+  --blue-dim:    rgba(122,162,255,0.12);
+  --blue-line:   rgba(122,162,255,0.2);
+
+  --green:       #4ade80;
+  --green-dim:   rgba(34,197,94,0.1);
+  --green-line:  rgba(34,197,94,0.2);
+
+  --red:         #f87171;
+  --red-dim:     rgba(248,113,113,0.1);
+
+  --amber:       #fbbf24;
+  --purple:      #c084fc;
+
+  --text-1:      #e2e8f0;
+  --text-2:      #9bb3ff;
+  --text-3:      #88add9;
+  --text-muted:  #cfd6ff;
+
+  --sidebar-w:   220px;
+  --radius-lg:   14px;
+  --radius-md:   10px;
+  --radius-sm:   8px;
+}
+
+/* ═══════════════════════════════════════════
+   RESET + BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+::-webkit-scrollbar              { width: 5px; height: 5px; }
+::-webkit-scrollbar-track        { background: var(--bg); }
+::-webkit-scrollbar-thumb        { background: #1e2540; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--blue); }
+
+html { scroll-behavior: smooth; }
+
+body {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════ */
+.cand-sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: #0d1018;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  padding: 28px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.cand-brand {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--blue);
+  margin-bottom: 36px;
+  letter-spacing: -0.02em;
+}
+
+.cand-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.cand-menu-item {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #a8b3d1;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+
+.cand-menu-item:hover {
+  background: rgba(122,162,255,0.06);
+  color: var(--text-1);
+}
+
+.cand-menu-item.active {
+  background: rgba(122,162,255,0.1);
+  border-color: rgba(122,162,255,0.25);
+  color: var(--blue);
+}
+
+.logout-btn {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--red);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+  margin-top: 4px;
+}
+
+.logout-btn:hover {
+  background: rgba(248,113,113,0.08);
+}
+
+/* ═══════════════════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════════════════ */
+.cand-main {
+  flex: 1;
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 32px 32px 48px;
+}
+
+/* ═══════════════════════════════════════════
+   PAGE TITLE
+═══════════════════════════════════════════ */
+.cand-page-title {
+  margin-bottom: 24px;
+}
+
+.cand-page-title h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-1);
+}
+
+.cand-page-title p {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-top: 5px;
+}
+
+/* ═══════════════════════════════════════════
+   SECTION LABEL (matching resume.html)
+═══════════════════════════════════════════ */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-2);
+  margin-bottom: 14px;
+}
+
+/* ═══════════════════════════════════════════
+   CARD BASE
+═══════════════════════════════════════════ */
+.cand-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+}
+
+/* ═══════════════════════════════════════════
+   CANDIDATE SELECT CARD
+═══════════════════════════════════════════ */
+.select-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 16px 22px;
+  margin-bottom: 24px;
+}
+
+.select-card label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.select-card .select-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 240px;
+}
+
+/* ═══════════════════════════════════════════
+   FORM CONTROLS
+═══════════════════════════════════════════ */
+select, input {
+  background: #0d1018;
+  border: 1px solid rgba(122,162,255,0.14);
+  border-radius: var(--radius-sm);
+  color: var(--text-1);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5580' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+select:focus, input:focus {
+  border-color: rgba(122,162,255,0.4);
+}
+
+select option { background: #111827; }
+
+/* ═══════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════ */
+.btn-primary {
+  background: var(--blue);
+  color: #080c18;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+/* ═══════════════════════════════════════════
+   MATCHES SECTION
+═══════════════════════════════════════════ */
+.matches-section {}
+
+.matches-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.matches-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.matches-count {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.match-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-select {
+  width: auto;
+  min-width: 130px;
+  font-size: 12px;
+  padding: 7px 28px 7px 10px;
+  background-color: #0d1018;
+}
+
+/* ═══════════════════════════════════════════
+   MATCHES GRID
+═══════════════════════════════════════════ */
+.matches-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 16px;
+}
+
+/* ═══════════════════════════════════════════
+   MATCH CARD
+═══════════════════════════════════════════ */
+.match-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.match-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top left, rgba(122,162,255,0.04), transparent 60%);
+  pointer-events: none;
+}
+
+.match-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(122,162,255,0.22);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+
+/* TOP PICK highlight */
+.match-card.top-pick {
+  border-color: rgba(122,162,255,0.3);
+  box-shadow: 0 0 0 1px rgba(122,162,255,0.12), 0 8px 24px rgba(122,162,255,0.08);
+}
+
+.match-card.top-pick::before {
+  background: radial-gradient(ellipse at top left, rgba(122,162,255,0.08), transparent 65%);
+}
+
+/* ── Card Header ── */
+.match-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.match-card-titles { flex: 1; min-width: 0; }
+
+.match-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.match-card-company {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Match Badge ── */
+.match-pct {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.match-ring {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+
+.match-ring svg {
+  width: 48px;
+  height: 48px;
+  transform: rotate(-90deg);
+}
+
+.match-ring .ring-bg {
+  fill: none;
+  stroke: #1b2140;
+  stroke-width: 4;
+}
+
+.match-ring .ring-fill {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 113;
+  transition: stroke-dashoffset 1s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.match-ring-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+/* ── Meta row ── */
+.match-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.meta-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-1);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.meta-chip svg { opacity: 0.6; }
+
+/* ── Salary ── */
+.match-salary {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 10px;
+}
+
+/* ── Description ── */
+.match-desc {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+/* ── Tags / Skills ── */
+.match-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.match-tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--blue-dim);
+  color: var(--blue);
+  border: 1px solid var(--blue-line);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ── Top Pick Badge ── */
+.top-pick-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--amber);
+  background: rgba(251,191,36,0.08);
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: 5px;
+  padding: 2px 7px;
+  margin-bottom: 10px;
+  align-self: flex-start;
+}
+
+/* ── Action Buttons ── */
+.match-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.match-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 34px;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.match-btn.apply {
+  background: linear-gradient(135deg, rgba(122,162,255,0.2), rgba(122,162,255,0.1));
+  border-color: rgba(122,162,255,0.3);
+  color: var(--blue);
+}
+
+.match-btn.apply:hover {
+  background: var(--blue);
+  color: #080c18;
+  border-color: var(--blue);
+}
+
+.match-btn.save {
+  background: rgba(74,222,128,0.08);
+  border-color: rgba(74,222,128,0.2);
+  color: var(--green);
+}
+
+.match-btn.save:hover {
+  background: rgba(74,222,128,0.16);
+  border-color: rgba(74,222,128,0.4);
+}
+
+.match-btn.know {
+  background: rgba(192,132,252,0.08);
+  border-color: rgba(192,132,252,0.2);
+  color: var(--purple);
+}
+
+.match-btn.know:hover {
+  background: rgba(192,132,252,0.16);
+  border-color: rgba(192,132,252,0.4);
+}
+
+/* ── Saved state ── */
+.match-btn.save.saved {
+  background: rgba(74,222,128,0.14);
+  border-color: rgba(74,222,128,0.35);
+  color: var(--green);
+}
+
+/* ── AI Insight ── */
+.match-insight {
+  font-size: 12px;
+  color: #9bb3ff;
+  background: rgba(122,162,255,0.06);
+  border: 1px solid rgba(122,162,255,0.12);
+  border-radius: 7px;
+  padding: 7px 10px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+/* ── Ring SVG transform fix ── */
+.match-ring svg circle.ring-fill {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ═══════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════ */
+.empty-state {
+  grid-column: 1 / -1;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-3);
+}
+
+.empty-state-icon {
+  width: 52px;
+  height: 52px;
+  background: var(--blue-dim);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+
+.empty-state-icon svg { stroke: var(--blue); }
+
+.empty-state h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-1);
+  margin-bottom: 6px;
+}
+
+.empty-state p { font-size: 13px; }
+
+/* ═══════════════════════════════════════════
+   SKELETON LOADER  
+═══════════════════════════════════════════ */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.skeleton-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skel {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #1a2035 25%, #202840 50%, #1a2035 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.skel-row    { display: flex; gap: 10px; align-items: center; }
+.skel-h20    { height: 20px; }
+.skel-h14    { height: 14px; }
+.skel-h10    { height: 10px; }
+.skel-h34    { height: 34px; border-radius: var(--radius-sm); }
+.skel-circle { width: 48px; height: 48px; border-radius: 50%; flex-shrink: 0; }
+.skel-fill   { flex: 1; }
+.skel-w60    { width: 60%; }
+.skel-w40    { width: 40%; }
+.skel-w80    { width: 80%; }
+.skel-w30    { width: 30%; }
+
+/* ═══════════════════════════════════════════
+   DIVIDER
+═══════════════════════════════════════════ */
+.section-divider {
+  height: 1px;
+  background: rgba(122,162,255,0.06);
+  margin: 0 -24px 20px;
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.match-card {
+  animation: fadeUp 0.35s ease both;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ════════ SIDEBAR ════════ -->
+<aside class="cand-sidebar">
+  <a href="/jobmatches.html" style="text-decoration:none;"><h2 class="cand-brand">BeyondMatch</h2></a>
+  <nav class="cand-menu">
+    <a href="candidate-dashboard.html" class="cand-menu-item">Dashboard</a>
+    <a href="resume.html"              class="cand-menu-item">Resume Analysis</a>
+    <a href="jobmatches.html"          class="cand-menu-item active">Job Matches</a>
+    <a href="savedjobs.html"           class="cand-menu-item">Saved Jobs</a>
+    <a href="locatehire.html"          class="cand-menu-item">LocateHire</a>
+        <a href="cand_actions.html"          class="cand-menu-item">Candidate Actions</a>
+    <a href="settings.html"            class="cand-menu-item">Settings</a>
+  </nav>
+  <button class="logout-btn" onclick="unifiedLogout()">⏻ Logout</button>
+</aside>
+
+<!-- ════════ MAIN ════════ -->
+<main class="cand-main">
+
+  <!-- PAGE TITLE -->
+  <div class="cand-page-title">
+    <h1>Job Matches</h1>
+    <p>AI-matched opportunities based on your resume and skills.</p>
+  </div>
+
+  <!-- SELECT CARD -->
+  <div class="cand-card select-card">
+    <label>Candidate Resume</label>
+    <div class="select-row">
+      <select id="candidateSelect"></select>
+      <button class="btn-primary" onclick="loadCandidateJobMatches()">View Matches</button>
+    </div>
+  </div>
+
+  <!-- MATCHES SECTION -->
+  <div class="matches-section">
+
+    <div class="matches-header">
+      <div>
+        <h3>Matched Jobs</h3>
+        <div class="matches-count" id="matchesCount"></div>
+      </div>
+
+      <div class="match-filters">
+        <select id="locationFilter" class="filter-select">
+          <option value="">All Locations</option>
+        </select>
+
+        <select id="matchFilter" class="filter-select">
+          <option value="">All Match %</option>
+          <option value="50">50%+</option>
+          <option value="60">60%+</option>
+          <option value="70">70%+</option>
+          <option value="80">80%+</option>
+        </select>
+
+        <select id="salarySort" class="filter-select">
+          <option value="">Sort by Salary</option>
+          <option value="high">High → Low</option>
+          <option value="low">Low → High</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div id="matchesGrid" class="matches-grid"></div>
+
+  </div>
+
+</main>
+
+<!-- ════════ IDLE STATE (no skeleton until View Matches is triggered) ════════ -->
+<script>
+(function() {
+  const grid = document.getElementById('matchesGrid');
+  if (!grid) return;
+  grid.innerHTML = `
+    <div class="empty-state" id="idleState">
+      <div class="empty-state-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </div>
+      <h4>Select a resume to find matches</h4>
+      <p>Choose your resume above and click <strong style="color:#7aa2ff;">View Matches</strong> to see AI-matched jobs.</p>
+    </div>`;
+})();
+</script>
+
+<!-- ════════ SCRIPTS ════════ -->
+<script src="skeleton-loader.js"></script>
+<script type="module" src="auth.js"></script>
+<script type="module" src="candidate.js"></script>
+<script type="module" src="api.js"></script>
+
+</body>
+</html>

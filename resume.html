@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resume Analysis – BeyondMatch</title>
+<link rel="stylesheet" href="cand.css" />
+
+<style>
+/* ── PAGE-LEVEL OVERRIDES ── */
+body { overflow: auto; }
+
+.cand-main {
+  overflow: auto;
+  height: auto;
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* ── PAGE TITLE ── */
+.cand-page-title { margin-bottom: 24px; }
+.cand-page-title h1 { font-size: 26px; margin: 0; }
+.cand-page-title p  { opacity: 0.7; margin-top: 6px; font-size: 14px; }
+
+/* ── TOP ROW: upload left, score right ── */
+.resume-top-row {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+/* ── BOTTOM ROW: insights left, keywords+suggestions right ── */
+.resume-bot-row {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+}
+
+/* ── SHARED SECTION HEADING ── */
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9bb3ff;
+  margin-bottom: 14px;
+}
+
+.drop-zone {
+  border: 2px dashed rgba(122, 162, 255, 0.3);
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: rgba(122, 162, 255, 0.03);
+  position: relative;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: #7aa2ff;
+  background: rgba(122, 162, 255, 0.07);
+}
+.drop-zone input[type="file"] {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer;
+  width: 100%; height: 100%;
+}
+.drop-icon {
+  width: 44px; height: 44px;
+  background: rgba(122, 162, 255, 0.12);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+}
+.drop-icon svg { width: 20px; height: 20px; stroke: #7aa2ff; }
+.drop-zone p   { font-size: 13px; color: #9bb3ff; margin: 0; }
+.drop-zone p strong { color: #7aa2ff; }
+.drop-zone small { font-size: 11px; color: #4a5580; margin-top: 4px; display: block; }
+
+.file-info {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 10px;
+}
+.file-info.show { display: flex; }
+.file-info svg  { stroke: #4ade80; width: 16px; height: 16px; flex-shrink: 0; }
+.file-info span { font-size: 13px; color: #4ade80; flex: 1; }
+.file-remove {
+  background: none; border: none;
+  color: #4a5580; cursor: pointer; font-size: 16px; line-height: 1;
+}
+
+.parse-status {
+  display: none; align-items: center; gap: 8px;
+  margin-top: 10px; font-size: 12px; color: #4a5580;
+}
+.parse-status.show { display: flex; }
+.spinner {
+  width: 13px; height: 13px;
+  border: 2px solid rgba(255,255,255,0.08);
+  border-top-color: #7aa2ff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.analyze-btn {
+  width: 100%; margin-top: 16px;
+  padding: 12px;
+  background: #7aa2ff;
+  color: #000;
+  border: none; border-radius: 10px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.analyze-btn:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
+.analyze-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.score-card { align-items: center; text-align: center; gap: 0; }
+
+.gauge-wrap {
+  position: relative; width: 180px; margin: 10px auto 14px;
+}
+.gauge-wrap svg { width: 100%; overflow: visible; }
+.gauge-bg   { fill: none; stroke: #1b2140; stroke-width: 13; stroke-linecap: round; }
+.gauge-fill {
+  fill: none; stroke-width: 13; stroke-linecap: round;
+  stroke: url(#gGrad);
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.gauge-center {
+  position: absolute; bottom: 4px; left: 50%;
+  transform: translateX(-50%); text-align: center;
+}
+.gauge-num {
+  font-size: 2rem; font-weight: 700; line-height: 1;
+  color: #7aa2ff;
+}
+.gauge-sub { font-size: 10px; color: #4a5580; letter-spacing: 0.06em; margin-top: 2px; }
+
+.score-badge {
+  display: inline-block;
+  padding: 4px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 600; margin-bottom: 6px;
+}
+.badge-excellent { background: rgba(34,197,94,0.12);  color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+.badge-good      { background: rgba(122,162,255,0.12); color: #7aa2ff; border: 1px solid rgba(122,162,255,0.25); }
+.badge-fair      { background: rgba(251,191,36,0.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+.badge-poor      { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+.skill-bars { width: 100%; margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+.skill-row label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: #9bb3ff; margin-bottom: 5px;
+}
+.skill-row label span { color: #4a5580; }
+.skill-track {
+  height: 5px; background: #1b2140; border-radius: 10px; overflow: hidden;
+}
+.skill-fill {
+  height: 100%; border-radius: 10px; width: 0;
+  transition: width 1s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.empty-note {
+  font-size: 12px; color: #4a5580; text-align: center; padding: 12px 0;
+}
+
+.insights-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+
+.insight-col h4 {
+  font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.insight-col.str  h4 { color: #4ade80; }
+.insight-col.weak h4 { color: #f87171; }
+
+.insight-col ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.insight-col ul li {
+  font-size: 13px; color: #cfd6ff;
+  padding: 8px 12px; border-radius: 8px;
+  display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;
+}
+.insight-col.str  ul li { background: rgba(34,197,94,0.07);  border: 1px solid rgba(34,197,94,0.15); }
+.insight-col.weak ul li { background: rgba(248,113,113,0.07); border: 1px solid rgba(248,113,113,0.15); }
+.insight-col ul li::before {
+  content: ""; flex-shrink: 0; width: 5px; height: 5px;
+  border-radius: 50%; margin-top: 6px;
+}
+.insight-col.str  ul li::before { background: #4ade80; }
+.insight-col.weak ul li::before { background: #f87171; }
+
+.right-col { display: flex; flex-direction: column; gap: 20px; }
+
+.kw-group { margin-bottom: 14px; }
+.kw-group h4 {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin-bottom: 8px;
+}
+.kw-group.missing h4 { color: #f87171; }
+.kw-group.found   h4 { color: #4ade80; }
+
+.kw-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.kw-tag {
+  padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;
+}
+.kw-group.missing .kw-tag { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+.kw-group.found   .kw-tag { background: rgba(34,197,94,0.1);   color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+
+.suggestion-item {
+  display: flex; gap: 10px;
+  padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 13px; color: #cfd6ff; line-height: 1.45;
+  align-items: flex-start;
+}
+.suggestion-item:last-child { border-bottom: none; }
+.sug-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #fbbf24; flex-shrink: 0; margin-top: 5px;
+}
+
+.analyzing-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(11,14,22,0.88);
+  z-index: 200;
+  align-items: center; justify-content: center;
+  flex-direction: column; gap: 14px;
+}
+.analyzing-overlay.show { display: flex; }
+.big-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid rgba(255,255,255,0.07);
+  border-top-color: #7aa2ff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.analyzing-overlay p     { font-size: 15px; font-weight: 600; color: #e5e7eb; margin: 0; }
+.analyzing-overlay small { font-size: 12px; color: #4a5580; }
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<aside class="cand-sidebar">
+<a href="/resume.html" style="text-decoration:none;"><h2 class="cand-brand">BeyondMatch</h2></a>
+  <nav class="cand-menu">
+    <a href="/candidate-dashboard.html" class="cand-menu-item">Dashboard</a>
+    <a href="/resume.html"              class="cand-menu-item active">Resume Analysis</a>
+    <a href="/jobmatches.html"          class="cand-menu-item">Job Matches</a>
+    <a href="/locatehire.html"          class="cand-menu-item">LocateHire</a>
+        <a href="/cand_actions.html"           class="cand-menu-item">Candidate Actions</a>
+    <a href="/settings.html"            class="cand-menu-item">Settings</a>
+    <a href="/savedjobs.html"           class="cand-menu-item">Saved Jobs</a>
+    <button class="logout-btn" onclick="unifiedLogout()">⏻ Logout</button>
+  </nav>
+</aside>
+
+<!-- ANALYZING OVERLAY -->
+<div class="analyzing-overlay" id="analyzingOverlay">
+  <div class="big-spinner"></div>
+  <p>Analyzing your resume…</p>
+  <small>AI is scoring your profile against ATS systems</small>
+</div>
+
+<!-- MAIN -->
+<main class="cand-main">
+
+  <div class="cand-page-title">
+    <h1>ATS Matching &amp; Optimization Report</h1>
+    <p>Upload your resume to get an AI-powered ATS score, skill insights, and keyword feedback.</p>
+  </div>
+
+  <div id="autoStatusMsg" style="display:none; font-size:13px; margin-bottom:16px; padding:10px 14px; background:rgba(122,162,255,0.07); border:1px solid rgba(122,162,255,0.15); border-radius:10px;"></div>
+
+  <div id="currentResumeBar" style="display:none; align-items:center; gap:10px; margin-bottom:16px; padding:10px 14px; background:rgba(34,197,94,0.07); border:1px solid rgba(34,197,94,0.15); border-radius:10px;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    <span style="font-size:13px; color:#4ade80;">Showing analysis for: <strong id="currentResumeName"></strong></span>
+  </div>
+
+  <!-- TOP ROW -->
+  <div class="resume-top-row">
+
+    <!-- UPLOAD -->
+    <div class="cand-card" id="uploadCard">
+      <p class="section-label">Update Resume</p>
+      <p style="font-size:12px; color:#4a5580; margin-bottom:12px;">Your signup resume is loaded automatically. Upload a new file below only if you want to update it.</p>
+
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" />
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <p><strong>Drag &amp; Drop a PDF resume here</strong></p>
+        <small>or click to upload &nbsp;·&nbsp; PDF / DOCX</small>
+      </div>
+
+      <div class="file-info" id="fileInfo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span id="fileName">resume.pdf</span>
+        <button class="file-remove" id="removeFile">✕</button>
+      </div>
+
+      <div class="parse-status" id="parseStatus">
+        <div class="spinner"></div>
+        <span>Parsing resume content…</span>
+      </div>
+
+      <button class="analyze-btn" id="analyzeBtn" disabled>Analyze Resume</button>
+    </div>
+
+    <!-- SCORE -->
+    <div class="cand-card score-card">
+      <p class="section-label">Real-Time Match &amp; Insights</p>
+
+      <div class="gauge-wrap">
+        <svg viewBox="0 0 180 110" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#7aa2ff"/>
+              <stop offset="100%" stop-color="#4ade80"/>
+            </linearGradient>
+          </defs>
+          <path class="gauge-bg"
+            d="M 18 96 A 72 72 0 0 1 162 96"
+            stroke-dasharray="226 226" />
+          <path class="gauge-fill" id="gaugeFill"
+            d="M 18 96 A 72 72 0 0 1 162 96"
+            stroke-dasharray="226 226"
+            stroke-dashoffset="226" />
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-num" id="atsScore">--</div>
+          <div class="gauge-sub">ATS MATCH SCORE</div>
+        </div>
+      </div>
+
+      <div id="scoreBadge"></div>
+
+      <div class="skill-bars" id="skillBars">
+        <p class="empty-note">Awaiting analysis…</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="resume-bot-row">
+
+    <!-- INSIGHTS -->
+    <div class="cand-card">
+      <p class="section-label">Insights &amp; Actionable Feedback</p>
+
+      <div id="insightsPlaceholder" style="padding:32px 0; text-align:center; color:#4a5580; font-size:13px;">
+        Upload and analyze a resume to see strengths, weaknesses, and keyword gaps.
+      </div>
+
+      <div class="insights-grid" id="insightsGrid" style="display:none;">
+        <div class="insight-col str">
+          <h4>Top Strengths Found</h4>
+          <ul id="strengthsList"></ul>
+        </div>
+        <div class="insight-col weak">
+          <h4>Resume Weaknesses Identified</h4>
+          <ul id="weaknessesList"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COL -->
+    <div class="right-col">
+
+      <!-- KEYWORDS -->
+      <div class="cand-card">
+        <p class="section-label">Keyword Optimization</p>
+        <div id="kwPlaceholder" style="font-size:12px; color:#4a5580; padding:8px 0;">
+          Run an analysis to see keyword gaps.
+        </div>
+        <div id="kwContent" style="display:none;">
+          <div class="kw-group missing">
+            <h4>Missing Key Terms</h4>
+            <div class="kw-tags" id="missingTags"></div>
+          </div>
+          <div class="kw-group found" style="margin-top:14px;">
+            <h4>Found Key Terms</h4>
+            <div class="kw-tags" id="foundTags"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUGGESTIONS -->
+      <div class="cand-card">
+        <p class="section-label">Immediate Optimization Suggestions</p>
+        <div id="sugPlaceholder" style="font-size:12px; color:#4a5580; padding:8px 0;">
+          AI suggestions will appear here after analysis.
+        </div>
+        <div id="suggestionsList"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+</main>
+
+<!-- PDF.js + Mammoth -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+
+<script type="module">
+import { callGemini } from "./gemini.js";
+import { auth, db } from "./auth.js";
+import { apiFetch } from "./api.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc, getDocs, setDoc, updateDoc, writeBatch,
+  collection, query, where, orderBy, limit, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* ── STATE ── */
+window._resumeText    = "";
+window._candidateId   = "";
+window._candidateName = "";
+
+const API_BASE = "https://wx0334lyy6.execute-api.eu-north-1.amazonaws.com";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+function setStatus(msg, type = "info") {
+  const el = document.getElementById("autoStatusMsg");
+  if (!el) return;
+  el.textContent   = msg;
+  el.style.display = "block";
+  el.style.color       = type === "warn" ? "#fbbf24" : type === "success" ? "#4ade80" : "#9bb3ff";
+  el.style.borderColor = type === "warn" ? "rgba(251,191,36,0.2)" : type === "success" ? "rgba(34,197,94,0.2)" : "rgba(122,162,255,0.15)";
+  el.style.background  = type === "warn" ? "rgba(251,191,36,0.06)" : type === "success" ? "rgba(34,197,94,0.06)" : "rgba(122,162,255,0.07)";
+}
+function clearStatus() {
+  const el = document.getElementById("autoStatusMsg");
+  if (el) el.style.display = "none";
+}
+function showCurrentBar(name) {
+  document.getElementById("currentResumeBar").style.display = "flex";
+  document.getElementById("currentResumeName").textContent  = name;
+}
+function highlightUploadCard() {
+  const card = document.getElementById("uploadCard");
+  if (!card) return;
+  card.style.border     = "1px solid rgba(251,191,36,0.45)";
+  card.style.background = "linear-gradient(145deg, #1c1e2e, #141628)";
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  document.getElementById("analyzeBtn").textContent = "Save & Analyze Resume";
+}
+function resetUploadCard() {
+  const card = document.getElementById("uploadCard");
+  if (!card) return;
+  card.style.border     = "";
+  card.style.background = "";
+  document.getElementById("analyzeBtn").textContent = "Re-analyze Resume";
+}
+
+/* =========================================================
+   FIND MOST RECENT CANDIDATE DOC FOR THIS USER
+========================================================= */
+async function findLatestCandidateDoc(user) {
+  const userSnap = await getDoc(doc(db, "users", user.uid));
+  let knownCandidateId = null;
+
+  if (userSnap.exists()) {
+    const ud = userSnap.data();
+    window._candidateName = ud.name || user.email.split("@")[0];
+    knownCandidateId = ud.latest_candidate_id || ud.candidate_id || null;
+
+    if (knownCandidateId) {
+      const cs = await getDoc(doc(db, "candidates", knownCandidateId));
+      if (cs.exists()) {
+        return { id: cs.id, ...cs.data() };
+      } else {
+        /* Self-heal: users doc points to missing candidates doc */
+        const healDoc = {
+          candidate_id: knownCandidateId,
+          name:         ud.name || user.email.split("@")[0],
+          email:        user.email,
+          user_id:      user.uid,
+          applied_role: "General",
+          resume_text:  "",
+          is_latest:    true,
+          createdAt:    serverTimestamp()
+        };
+        try {
+          await setDoc(doc(db, "candidates", knownCandidateId), healDoc);
+          return { id: knownCandidateId, ...healDoc };
+        } catch (healErr) {
+          /* Fall through to query */
+        }
+      }
+    }
+  }
+
+  /* Query by user_id */
+  let allDocs = [];
+  try {
+    const q1 = query(
+      collection(db, "candidates"),
+      where("user_id", "==", user.uid),
+      orderBy("createdAt", "desc"),
+      limit(10)
+    );
+    const s1 = await getDocs(q1);
+    s1.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
+  } catch(e) { /* index may not exist yet */ }
+
+  /* Email fallback */
+  if (!allDocs.length) {
+    try {
+      const q2 = query(collection(db, "candidates"), where("email", "==", user.email));
+      const s2 = await getDocs(q2);
+      s2.forEach(d => allDocs.push({ id: d.id, ...d.data() }));
+      allDocs.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+    } catch(e) { /* silent */ }
+  }
+
+  if (allDocs.length) {
+    const latest = allDocs.find(d => d.is_latest) || allDocs[0];
+    await setDoc(doc(db, "users", user.uid), {
+      latest_candidate_id: latest.id,
+      candidate_id:        latest.id
+    }, { merge: true });
+    return latest;
+  }
+
+  return null;
+}
+
+/* =========================================================
+   ON AUTH
+========================================================= */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+  setStatus("Loading your profile…");
+
+  try {
+    window._candidateName = user.email?.split("@")[0] || "You";
+
+    const latest = await findLatestCandidateDoc(user);
+
+    if (!latest) {
+      setStatus("No profile yet. Upload your resume below to get started.", "warn");
+      highlightUploadCard();
+      return;
+    }
+
+    window._candidateId   = latest.id;
+    window._candidateName = latest.name || window._candidateName;
+
+    if (latest.resume_text?.trim()) {
+      window._resumeText = latest.resume_text;
+      showCurrentBar(window._candidateName + (latest.version ? ` (v${latest.version})` : ""));
+      setStatus("Resume found. Running analysis…");
+      await runAnalysis(latest.resume_text);
+      clearStatus();
+    } else {
+      setStatus("Your signup resume wasn't saved — please re-upload it below.", "warn");
+      highlightUploadCard();
+    }
+
+  } catch (err) {
+    setStatus("Could not load your profile. Upload your resume below.", "warn");
+    highlightUploadCard();
+  }
+});
+
+/* =========================================================
+   FILE INPUT & DRAG-DROP
+========================================================= */
+const dropZone = document.getElementById("dropZone");
+dropZone.addEventListener("dragover",  e => { e.preventDefault(); dropZone.classList.add("drag-over"); });
+dropZone.addEventListener("dragleave", ()  => dropZone.classList.remove("drag-over"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag-over");
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+document.getElementById("resumeFile").addEventListener("change", e => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+document.getElementById("removeFile").addEventListener("click", () => {
+  document.getElementById("resumeFile").value = "";
+  document.getElementById("fileInfo").classList.remove("show");
+  document.getElementById("parseStatus").classList.remove("show");
+  document.getElementById("analyzeBtn").disabled = true;
+});
+
+async function handleFile(file) {
+  const ext = file.name.split(".").pop().toLowerCase();
+  if (!["pdf","doc","docx"].includes(ext)) { alert("Please upload a PDF or DOCX file."); return; }
+  document.getElementById("fileName").textContent = file.name;
+  document.getElementById("fileInfo").classList.add("show");
+  document.getElementById("parseStatus").classList.add("show");
+  document.getElementById("analyzeBtn").disabled = true;
+  try {
+    window._resumeText = ext === "pdf" ? await parsePDF(file) : await parseDOCX(file);
+    document.getElementById("parseStatus").classList.remove("show");
+    document.getElementById("analyzeBtn").disabled = false;
+  } catch (err) {
+    alert("Failed to parse the file.");
+    document.getElementById("parseStatus").classList.remove("show");
+  }
+}
+
+async function parsePDF(file) {
+  const buffer = await file.arrayBuffer();
+  const pdf    = await pdfjsLib.getDocument({ data: buffer }).promise;
+  let text = "";
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page    = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(x => x.str).join(" ") + "\n";
+  }
+  return text;
+}
+
+async function parseDOCX(file) {
+  const buffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+  return result.value;
+}
+
+/* =========================================================
+   ANALYZE BUTTON
+========================================================= */
+document.getElementById("analyzeBtn").addEventListener("click", async () => {
+  const text = window._resumeText;
+  if (!text.trim()) { alert("Please upload a resume file first."); return; }
+
+  const btn = document.getElementById("analyzeBtn");
+  btn.disabled = true;
+
+  const newId = await saveNewResumeVersion(text);
+  if (newId) {
+    window._candidateId = newId;
+    showCurrentBar(window._candidateName + " (latest)");
+  }
+
+  resetUploadCard();
+  clearStatus();
+
+  try {
+    await runAnalysis(text);
+  } catch (err) {
+    alert("Analysis failed. Please try again.");
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* =========================================================
+   SAVE NEW RESUME VERSION
+========================================================= */
+async function saveNewResumeVersion(text) {
+  const user = auth.currentUser;
+  if (!user) return null;
+
+  const name        = window._candidateName || user.email.split("@")[0];
+  const appliedRole = inferRole(text);
+  let   newCandidateId = null;
+
+  /* Patch local placeholder in-place if no resume yet */
+  const currentId = window._candidateId || "";
+  if (currentId.startsWith("local_") && currentId.includes(user.uid)) {
+    try {
+      await setDoc(doc(db, "candidates", currentId), {
+        resume_text:  text,
+        applied_role: appliedRole,
+        is_latest:    true
+      }, { merge: true });
+      await setDoc(doc(db, "users", user.uid), {
+        latest_candidate_id: currentId,
+        candidate_id:        currentId
+      }, { merge: true });
+      return currentId;
+    } catch (patchErr) {
+      /* Fall through to new doc */
+    }
+  }
+
+  /* Try backend */
+  try {
+    const res = await fetch(`${API_BASE}/candidates`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ name, email: user.email, resume_text: text })
+    });
+    const raw  = await res.text();
+    let data   = {};
+    try { data = JSON.parse(raw); } catch(e) {}
+    newCandidateId = data?.candidate_id
+      || (typeof data?.body === "string"
+          ? (() => { try { return JSON.parse(data.body)?.candidate_id; } catch(e){ return null; } })()
+          : null);
+  } catch (err) {
+    /* Backend unavailable */
+  }
+
+  /* Fallback ID */
+  if (!newCandidateId) {
+    newCandidateId = `local_${user.uid}_${Date.now()}`;
+  }
+
+  try {
+    const batch = writeBatch(db);
+
+    batch.set(doc(db, "candidates", newCandidateId), {
+      candidate_id: newCandidateId,
+      name,
+      email:        user.email,
+      user_id:      user.uid,
+      resume_text:  text,
+      applied_role: appliedRole,
+      is_latest:    true,
+      createdAt:    serverTimestamp()
+    });
+
+    if (window._candidateId && window._candidateId !== newCandidateId) {
+      batch.update(doc(db, "candidates", window._candidateId), { is_latest: false });
+    }
+
+    batch.set(doc(db, "users", user.uid), {
+      latest_candidate_id: newCandidateId,
+      candidate_id:        newCandidateId
+    }, { merge: true });
+
+    await batch.commit();
+    return newCandidateId;
+
+  } catch (err) {
+    alert("Failed to save resume. Please try again.");
+    return null;
+  }
+}
+
+function inferRole(text = "") {
+  const t   = text.toLowerCase();
+  const map = {
+    "Backend Developer":    ["backend","node","django","flask","api","express"],
+    "Frontend Developer":   ["frontend","html","css","react","ui"],
+    "Full Stack Developer": ["full stack","mern"],
+    "Data Scientist":       ["machine learning","deep learning","model"],
+    "Data Analyst":         ["data analyst","power bi","tableau","excel"],
+    "DevOps Engineer":      ["docker","kubernetes","aws","ci/cd"],
+    "AI Engineer":          ["nlp","llm","computer vision"]
+  };
+  let best = "General", max = 0;
+  for (const role in map) {
+    const score = map[role].filter(k => t.includes(k)).length;
+    if (score > max) { max = score; best = role; }
+  }
+  return best;
+}
+
+/* =========================================================
+   RUN ANALYSIS
+========================================================= */
+async function runAnalysis(text) {
+  document.getElementById("analyzingOverlay").classList.add("show");
+  try {
+    const prompt = `You are an expert ATS analyzer and career coach.
+
+Analyze this resume and return ONLY a valid JSON object. No markdown, no backticks, no explanation.
+
+{
+  "score": <number 0-100>,
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "weaknesses": ["weakness 1", "weakness 2", "weakness 3"],
+  "missing_keywords": ["kw1", "kw2", "kw3", "kw4", "kw5"],
+  "found_keywords": ["kw1", "kw2", "kw3", "kw4", "kw5"],
+  "skill_breakdown": [
+    {"name": "Technical Skills",  "score": 80},
+    {"name": "Experience Depth",  "score": 65},
+    {"name": "Keyword Density",   "score": 70},
+    {"name": "Formatting",        "score": 85}
+  ],
+  "suggestions": ["suggestion 1", "suggestion 2", "suggestion 3"]
+}
+
+Resume:
+${text.slice(0, 4000)}`;
+
+    const raw    = await callGemini(prompt);
+    if (!raw) throw new Error("Empty LLM response");
+    const result = JSON.parse(raw.replace(/```json|```/g, "").trim());
+    renderResults(result);
+  } finally {
+    document.getElementById("analyzingOverlay").classList.remove("show");
+  }
+}
+
+/* =========================================================
+   RENDER RESULTS
+========================================================= */
+function renderResults(d) {
+  const score = Math.max(0, Math.min(100, d.score || 0));
+  document.getElementById("atsScore").textContent = score + "%";
+  document.getElementById("gaugeFill").style.strokeDashoffset = 226 - (score / 100) * 226;
+
+  let cls = "badge-poor", lbl = "Needs Work";
+  if      (score >= 85) { cls = "badge-excellent"; lbl = "Excellent"; }
+  else if (score >= 70) { cls = "badge-good";      lbl = "Good Match"; }
+  else if (score >= 50) { cls = "badge-fair";       lbl = "Fair"; }
+  document.getElementById("scoreBadge").innerHTML = `<span class="score-badge ${cls}">${lbl}</span>`;
+
+  const colors = ["#7aa2ff","#4ade80","#fbbf24","#c084fc"];
+  const barsEl = document.getElementById("skillBars");
+  barsEl.innerHTML = (d.skill_breakdown || []).map((s, i) => `
+    <div class="skill-row">
+      <label>${s.name}<span>${s.score}%</span></label>
+      <div class="skill-track">
+        <div class="skill-fill" style="background:${colors[i%colors.length]};" data-target="${s.score}"></div>
+      </div>
+    </div>`).join("");
+  setTimeout(() => {
+    barsEl.querySelectorAll(".skill-fill").forEach(el => el.style.width = el.dataset.target + "%");
+  }, 80);
+
+  document.getElementById("insightsPlaceholder").style.display = "none";
+  document.getElementById("insightsGrid").style.display        = "grid";
+  document.getElementById("strengthsList").innerHTML  = (d.strengths  || []).map(s => `<li>${s}</li>`).join("");
+  document.getElementById("weaknessesList").innerHTML = (d.weaknesses || []).map(w => `<li>${w}</li>`).join("");
+
+  document.getElementById("kwPlaceholder").style.display = "none";
+  document.getElementById("kwContent").style.display     = "block";
+  document.getElementById("missingTags").innerHTML = (d.missing_keywords || []).map(k => `<span class="kw-tag">${k}</span>`).join("");
+  document.getElementById("foundTags").innerHTML   = (d.found_keywords   || []).map(k => `<span class="kw-tag">${k}</span>`).join("");
+
+  document.getElementById("sugPlaceholder").style.display = "none";
+  document.getElementById("suggestionsList").innerHTML    = (d.suggestions || []).map(s =>
+    `<div class="suggestion-item"><div class="sug-dot"></div><span>${s}</span></div>`).join("");
+}
+</script>
+
+</body>
+</html>
