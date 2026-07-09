@@ -4,8 +4,8 @@
    Named "callGemini" for backward compatibility.
 ========================================================= */
 
-const LLM_ENDPOINT = "https:///llm";
-
+const LLM_ENDPOINT =
+  "https://wx0334lyy6.execute-api.eu-north-1.amazonaws.com/llm";
 // In-memory prompt cache — cleared on page reload
 const _promptCache = new Map();
 
