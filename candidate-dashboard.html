@@ -310,13 +310,14 @@ body { display:flex; min-height:100vh; background:var(--bg); color:var(--text-1)
 ========================================================= */
 const HARDCODED = {
   accessToken: "",   // ← paste EMBED_ACCESS_TOKEN value here
-  embedUrl:    "https://app.powerbi.com/reportEmbed?reportId=ee6e976c-5b91-4920-b8d5-41da6b4a4eb0&autoAuth=true&ctid=0c9e228c-dc90-4c87-941e-fea8952b7dd1",
-  reportId:    "ee6e976c-5b91-4920-b8d5-41da6b4a4eb0",
+  embedUrl:    "https://app.powerbi.com/reportEmbed?reportId=18d88064-b765-40c7-82ce-5833d3e0a63b&autoAuth=true&ctid=0c9e228c-dc90-4c87-941e-fea8952b7dd1",
+  reportId:    "18d88064-b765-40c7-82ce-5833d3e0a63b",
   tokenType:   "0"   // "0" = AAD (autoAuth=true)
 };
 
-const API_LAMBDA = "https:///getEmbedUrl";
-const FALLBACK_REPORT_ID = "ee6e976c-5b91-4920-b8d5-41da6b4a4eb0";
+const API_LAMBDA =
+"https://wx0334lyy6.execute-api.eu-north-1.amazonaws.com/getEmbedUrl";
+const FALLBACK_REPORT_ID = "18d88064-b765-40c7-82ce-5833d3e0a63b";
 
 /* ── helpers ── */
 const $ = id => document.getElementById(id);
